@@ -15,6 +15,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import org.jetbrains.compose.resources.painterResource
+import io.github.aakira.napier.Napier
+import io.github.aakira.napier.DebugAntilog
 
 import com.mujapps.golfgarage.ui.theme.GolfGarageTheme
 import golfgarage.shared.generated.resources.Res
@@ -23,6 +25,10 @@ import golfgarage.shared.generated.resources.compose_multiplatform
 @Composable
 @Preview
 fun App() {
+    remember {
+        Napier.base(DebugAntilog())
+    }
+
     var darkTheme by remember { mutableStateOf(false) }
 
     GolfGarageTheme(darkTheme = darkTheme) {

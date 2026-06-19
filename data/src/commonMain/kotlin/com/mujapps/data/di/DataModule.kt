@@ -16,6 +16,7 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.koin.dsl.bind
 import org.koin.dsl.module
+import io.github.aakira.napier.Napier
 
 
 val dataModule = module {
@@ -32,7 +33,7 @@ val dataModule = module {
             level = LogLevel.ALL //At production level this should be set to NONE
             logger = object : Logger {
                 override fun log(message: String) {
-                    println("HTTP Client: $message")
+                    Napier.d(tag = "HttpClient", message = message)
                 }
             }
         }
