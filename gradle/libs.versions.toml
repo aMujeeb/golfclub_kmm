@@ -18,7 +18,7 @@ runner = "1.7.0"
 core = "1.7.0"
 kotlinx-coroutines = "1.11.0"
 
-koin = "4.2.2"
+koin = "4.2.1"
 ktor = "3.5.0"
 kotlinx-serialization = "1.11.0"
 kotlinx-datetime = "0.8.0"
