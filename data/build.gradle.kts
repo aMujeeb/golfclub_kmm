@@ -70,7 +70,7 @@ kotlin {
                 implementation(project(":domain"))
                 // Add KMP dependencies here
                 implementation(libs.kotlinx.datetime)
-                implementation(libs.koin.core)
+                api(libs.koin.core)
 
                 // Room dependencies
                 implementation(libs.androidx.room.runtime)

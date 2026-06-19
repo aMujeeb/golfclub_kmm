@@ -48,6 +48,9 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.napier)
+            implementation(project(":domain"))
+            implementation(project(":data"))
+            implementation(project(":presentation"))
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
