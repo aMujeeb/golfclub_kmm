@@ -70,11 +70,20 @@ kotlin {
                 implementation(project(":domain"))
                 // Add KMP dependencies here
                 implementation(libs.kotlinx.datetime)
-                implementation(libs.koin.core)
+                api(libs.koin.core)
 
                 // Room dependencies
                 implementation(libs.androidx.room.runtime)
 
+                //Ktor dependencies
+                implementation(libs.ktor.client.core)
+                implementation(libs.ktor.client.content.negotiation)
+                implementation(libs.ktor.client.logging)
+                implementation(libs.ktor.serialization.kotlinx.json)
+                implementation(libs.kotlinx.serialization.json)
+
+                //Logging
+                implementation(libs.napier)
             }
         }
 

@@ -227,4 +227,24 @@ Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
 
 ---
 
+## Logging
+
+The project uses **Napier** for structured, cross-platform logging. All logging is automatically initialized at app startup and routes to:
+- **Android:** `android.util.Log` (visible in Logcat)
+- **iOS:** `NSLog` / os-log (visible in Xcode Console)
+
+Developers can call `Napier.d()`, `Napier.e()`, `Napier.w()` directly from shared code (`commonMain`). HTTP client requests and network errors are automatically logged. For details, see the **Logging** section in `CLAUDE.md`.
+
+## Data Layer
+
+The `:data` module handles networking via Ktor and converts API responses (DTOs) to domain models using mapper functions:
+
+- **DTOs** (`NetworkModels.kt`): `@Serializable` classes matching the API response shape.
+- **Mappers** (`DtoMappers.kt`): Extension functions (`GolfPlayerDto.toDomain()`, `GolfShotDto.toDomain()`, etc.) convert DTOs to domain models.
+- **RemoteDataSource** (`RemoteDataSource.kt`): Fetches data from the API and wraps responses in `Result<T>`, logging errors via Napier.
+
+For details, see the **Data Layer & Mappers** section in `CLAUDE.md`.
+
+---
+
 Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…

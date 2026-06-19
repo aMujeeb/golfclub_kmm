@@ -54,18 +54,118 @@ Dependency flow: `:androidApp` → `:shared` → `:presentation` → `:domain` �
 - **Room** 2.8.4 — local persistence (KMP Room); use KSP for annotation processing
 - **Coil** 3.4.0 — async image loading
 - **Navigation** (nav3) 1.1.1 — Compose Multiplatform navigation
+- **Napier** 2.7.1 — Kotlin Multiplatform structured logging (logs to Android Log, iOS NSLog, etc. automatically)
 - **kotlinx.coroutines** 1.11.0, **kotlinx.serialization** 1.11.0, **kotlinx.datetime** 0.8.0
 
-## Data Model
+## Logging
 
-Defined in `:domain` (see `SPEC.md` §Data Model for full detail):
+**Napier** (`io.github.aakira:napier:2.7.1`) is used for structured, cross-platform logging. It's initialized automatically in `App()` (shared/src/commonMain/kotlin/com/mujapps/golfgarage/App.kt):
 
 ```kotlin
-data class Player(id, name, profPicUrl, preferenceClub, averageBallSpeed, averageDistance,
-                  averageMetrics: List<Metric>, lastShot, joined)
-data class Metric(value: Double, deltaVsAvg: Double)  // order: [Speed, Angle, Distance, Spin]
-data class Shot(n, club, ballSpeed, launchAngle, carryDistance, spinRate, type, time)
+remember {
+    Napier.base(DebugAntilog())  // Called once at app startup (Android & iOS)
+}
 ```
+
+### Usage
+
+Call Napier directly from anywhere in `commonMain` code (e.g., data layer, presentation layer):
+
+```kotlin
+import io.github.aakira.napier.Napier
+
+Napier.d("Debug message")           // Debug
+Napier.i("Info message")            // Info
+Napier.w("Warning message")         // Warning
+Napier.e("Error message", ex)       // Error with throwable
+Napier.d(tag = "HttpClient", message = "request sent")  // With tag
+```
+
+Napier automatically routes to:
+- **Android:** `android.util.Log` (visible in Logcat)
+- **iOS:** `NSLog` / os-log (visible in Xcode Console)
+
+All HTTP client logs are tagged `HttpClient` and routed through Napier via the Ktor client's `Logging` plugin (configured in `data/src/commonMain/kotlin/com/mujapps/data/di/DataModule.kt`). Network errors are logged before being returned as `Result.failure(ex)`.
+
+## Data Layer & Mappers
+
+The `:data` module contains networking, persistence, and repository implementations.
+
+### DTOs (Network Models)
+
+Defined in `data/src/commonMain/kotlin/com/mujapps/data/remote/models/NetworkModels.kt`. These are `@Serializable` Kotlin Data Classes used by Ktor to deserialize API responses:
+
+```kotlin
+@Serializable
+data class GolfPlayerDto(
+    val id: String,
+    val name: String,
+    val profPicUrl: String,
+    val preferenceClub: String,
+    val averageBallSpeed: Double,
+    val averageDistance: Double,
+    val shots: List<GolfShotDto>? = null
+)
+
+@Serializable
+data class GolfShotDto(
+    val id: String,
+    val playerId: String,
+    val clubName: String,
+    val ballSpeed: Double,
+    val launchAngle: Double,
+    val carryDistance: Double,
+    val spinRate: Double,
+    val createdAt: String  // ISO 8601 timestamp
+)
+```
+
+### Mappers (DTO → Domain)
+
+Conversion functions from DTOs to domain models are defined in `data/src/commonMain/kotlin/com/mujapps/data/mappers/DtoMappers.kt` as extension functions:
+
+```kotlin
+fun GolfPlayerDto.toDomain(): GolfPlayer  // Single player, no shots
+fun GolfShotDto.toDomain(): GolfShot      // ISO timestamp → Instant
+fun GolfPlayerDto.toPlayerWithShots(): PlayerWithShots  // Player + shots aggregate
+fun GolfPlayer.toDto(): GolfPlayerDto     // Reverse: domain → DTO (for serialization)
+```
+
+Reverse mappers (domain → DTO) are used when sending data; forward mappers (DTO → domain) are used after receiving data from the API or database.
+
+## Domain Models
+
+Defined in `:domain/src/commonMain/kotlin/com/mujapps/domain/models/`. The current implementation is a simplified scaffold:
+
+```kotlin
+// Current actual domain models:
+data class GolfPlayer(
+    val mId: String,
+    val mName: String,
+    val mProfPicUrl: String,
+    val mPreferenceClub: String,
+    val mAverageBallSpeed: Double,
+    val mAverageDistance: Double
+)
+
+data class GolfShot(
+    val mId: String,
+    val mPlayerId: String,
+    val mClubName: String,
+    val mBallSpeed: Double,
+    val mLaunchAngle: Double,
+    val mCarryDistance: Double,
+    val mSpinRate: Double,
+    val mTimestamp: Instant  // kotlin.time.Instant
+)
+
+data class PlayerWithShots(
+    val mPlayer: GolfPlayer,
+    val mShots: List<GolfShot>
+)
+```
+
+**Note:** The spec in `SPEC.md` / `README.md` defines a richer data model (`Player`, `Shot`, `Metric` with `averageMetrics`, `lastShot`, `joined`, shot `type`/`time` fields, etc.). The current implementation is a simplified starting point; mappers are wired to convert the network DTOs to these current domain models. As the UI is built out, the domain models may be expanded to match the full spec.
 
 ## Navigation & State
 

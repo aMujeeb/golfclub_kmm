@@ -18,7 +18,7 @@ runner = "1.7.0"
 core = "1.7.0"
 kotlinx-coroutines = "1.11.0"
 
-koin = "4.2.2"
+koin = "4.2.1"
 ktor = "3.5.0"
 kotlinx-serialization = "1.11.0"
 kotlinx-datetime = "0.8.0"
@@ -28,6 +28,7 @@ room = "2.8.4"
 sqlite = "2.6.2"
 ksp = "2.3.9"
 kotlinx-io = "0.9.0"
+napier = "2.7.1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -70,6 +71,9 @@ ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
+
+#Logging
+napier = { module = "io.github.aakira:napier", version.ref = "napier" }
 
 #Serialization
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
