@@ -5,7 +5,6 @@ import com.mujapps.domain.models.PlayerWithShots
 import kotlinx.coroutines.flow.Flow
 
 interface IGolferRepository {
-    fun getAllPlayers(): Flow<List<GolfPlayer>>
-    suspend fun getPlayerById(playerId: String): GolfPlayer?
-    fun getPlayerWithShots(playerId: String): Flow<PlayerWithShots?>
+    suspend fun getAllPlayers(): List<GolfPlayer>
+    suspend fun getPlayerWithShots(playerId: String): PlayerWithShots?
 }
