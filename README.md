@@ -159,57 +159,69 @@ Suggested shared state (e.g. a `ViewModel` / `StateHolder`):
 Derived: filtered player list, the selected player's metric cards, shot list, and chart points are all computed from the above + the source data. Navigation is just `screen` transitions.
 
 ## Data Model
+
+The current domain layer implements a simplified scaffold of the full design-target model. As the UI is built out, these models will expand toward the richer shape documented in `SPEC.md` (with `averageMetrics`, `joined`, `lastShot`, and per-shot `type`/`time` fields).
+
+**Current implementation** (domain models in `:domain/src/commonMain/kotlin/com/mujapps/domain/models/`):
+
 ```kotlin
-data class Player(
-    val id: String,
-    val name: String,
-    val preferenceClub: String,   // e.g. "Driver | Irons"
-    val averageBallSpeed: Int,    // mph
-    val averageDistance: Int,     // yd
-    val lastShot: String,         // relative, e.g. "2m"
-    val joined: String,           // e.g. "Member since Jun 2026"
-    val metrics: List<Metric>,    // 4 entries, fixed order below
+data class GolfPlayer(
+    val mId: String,
+    val mName: String,
+    val mProfPicUrl: String,
+    val mPreferenceClub: String,
+    val mAverageBallSpeed: Double,
+    val mAverageDistance: Double
 )
 
-// Order: [0]=Ball Speed, [1]=Launch Angle, [2]=Carry Distance, [3]=Spin Rate
-data class Metric(val value: Double, val deltaVsAvg: Double)
+data class GolfShot(
+    val mId: String,
+    val mPlayerId: String,
+    val mClubName: String,
+    val mBallSpeed: Double,
+    val mLaunchAngle: Double,
+    val mCarryDistance: Double,
+    val mSpinRate: Double,
+    val mTimestamp: Instant  // kotlin.time.Instant
+)
 
-data class Shot(
-    val n: Int,                   // shot number
-    val club: String,
-    val ballSpeed: Int,           // mph
-    val launchAngle: Double,      // degrees
-    val carryDistance: Int,       // yd
-    val spinRate: Int,            // RPM
-    val type: String,             // "Tee" | "Approach" | "Pitch" | ...
-    val time: String,             // e.g. "2:34 PM"
+data class PlayerWithShots(
+    val mPlayer: GolfPlayer,
+    val mShots: List<GolfShot>
 )
 ```
-Every `Player` has a list of `Shot` records. **Formatting rules** (match the prototype):
+
+**Data flow:** Ktor fetches DTOs from the API (`GolfPlayerDto`, `GolfShotDto` in `data/src/commonMain/kotlin/com/mujapps/data/remote/models/NetworkModels.kt`), mappers convert them to domain models, and repositories expose them via `suspend` functions wrapped in `Flow` by use cases.
+
+**Formatting rules** (for display, match the prototype):
 - Launch Angle value: 1 decimal + "°".
 - Spin Rate: rounded, thousands separators (e.g. "2,650").
 - Delta sign uses U+2212 (−) for negatives.
 
-Seed data (6 players + sample shots) is embedded in the HTML's logic class — see `players` and `shots`. `getShots()` shows how shots are synthesized for players without explicit records; in production, fetch real shot records per player.
+See `CLAUDE.md` **Data Layer & Mappers** section for mapper details.
 
 ## Assets
 No bitmap assets. All icons are inline SVG strokes (search magnifier, chevrons). Avatars are generated from the player's first initial. Replace inline SVGs with your icon set / `Icons.*` equivalents.
 
 ## Files
 - `Golf Performance Tracker.dc.html` — the full interactive prototype (all three screens, light/dark themes, seed data, chart logic). Open in a browser to interact; read the source for exact values.
+- `SPEC.md` — detailed design spec including type scale, spacing rules, animations, data model, and implementation checklist.
+- `CLAUDE.md` — codebase architecture, module structure, build commands, and technical documentation.
 
+## Project Structure
 
-* [/iosApp](./iosApp/iosApp) contains an iOS application. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+The project follows a clean-architecture multi-module structure:
 
-* [/shared](./shared/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./shared/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./shared/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./shared/src/jvmMain/kotlin)
-    folder is the appropriate location.
+| Module | Responsibility |
+|--------|---------------|
+| `:androidApp` | Android entry point; initializes Koin DI and launches the shared UI. |
+| `:iosApp` | iOS entry point; minimal wrapper for the shared KMP framework. |
+| `:shared` | Compose Multiplatform UI, the `App()` composable, iOS `MainViewController` factory. |
+| `:presentation` | ViewModels, UI state holders, navigation logic (under development). |
+| `:domain` | Business rules, data model classes (`GolfPlayer`, `GolfShot`, etc.), repository interfaces, and use cases. |
+| `:data` | Repository implementations, Ktor networking, local persistence (TODO: Room entities/DAOs). |
+
+For full module architecture details and build/test commands, see `CLAUDE.md` **Module Architecture** and **Build & Run** sections.
 
 ### Running the apps
 
