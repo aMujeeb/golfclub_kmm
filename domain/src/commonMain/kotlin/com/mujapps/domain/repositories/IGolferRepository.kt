@@ -8,5 +8,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface IGolferRepository {
     fun getPlayerShots(playerId: String): Flow<PlayerWithShots?>
+    suspend fun syncPlayerShots(playerId: String)
     fun getPlayersPagingFlow(): Flow<PagingData<GolfPlayer>>
 }

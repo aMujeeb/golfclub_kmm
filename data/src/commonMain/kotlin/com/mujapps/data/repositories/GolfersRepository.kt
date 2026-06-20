@@ -15,46 +15,34 @@ import com.mujapps.data.local.dao.ShotDao
 import com.mujapps.data.paging.GolferPagingSource
 import com.mujapps.domain.models.GolfShot
 import com.mujapps.domain.models.PlayerWithShots
-import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 
 class GolfersRepository(
     private val mRemoteDataSource: RemoteDataSource, private val playerDao: PlayerDao,
     private val shotDao: ShotDao,
 ) : IGolferRepository {
 
-    override fun getPlayerShots(playerId: String): Flow<PlayerWithShots?> = channelFlow {
-        Napier.d("Fetching shots for playerId: $playerId", tag = "GolfersRepository")
+    override fun getPlayerShots(playerId: String): Flow<PlayerWithShots?> {
+        Napier.d("Observing player shots from DB for playerId: $playerId", tag = "GolfersRepository")
+        return playerDao.getPlayerWithShots(playerId)
+            .distinctUntilChanged()
+            .map { it?.toDomain() }
+    }
 
-        launch {
-            try {
-                val response = mRemoteDataSource.getGolfPlayerShots(playerId)
-                response.onSuccess { dtos ->
-                    Napier.d(
-                        "Successfully fetched player shots, saving to DB",
-                        tag = "GolfersRepository"
-                    )
-                    shotDao.deleteShotsForPlayer(playerId)
-                    shotDao.insertShots(dtos.map { it.toEntity() })
-                }.onFailure {
-                    Napier.e(
-                        "Failed to fetch shots from API for playerId: $playerId",
-                        it,
-                        tag = "GolfersRepository"
-                    )
-                }
-            } catch (e: Exception) {
-                Napier.e(
-                    "Network exception fetching shots for playerId: $playerId",
-                    e,
-                    tag = "GolfersRepository"
-                )
+    override suspend fun syncPlayerShots(playerId: String) {
+        Napier.d("Starting background API sync for playerId: $playerId", tag = "GolfersRepository")
+        try {
+            val response = mRemoteDataSource.getGolfPlayerShots(playerId)
+            response.onSuccess { dtos ->
+                Napier.d("API sync success! Saving ${dtos.size} shots to DB", tag = "GolfersRepository")
+                shotDao.deleteShotsForPlayer(playerId)
+                shotDao.insertShots(dtos.map { it.toEntity() })
+            }.onFailure {
+                Napier.e("API sync failed for playerId: $playerId", it, tag = "GolfersRepository")
             }
-        }
-
-        playerDao.getPlayerWithShots(playerId).collectLatest { entity ->
-            send(entity?.toDomain())
+        } catch (e: Exception) {
+            Napier.e("Network exception during sync for playerId: $playerId", e, tag = "GolfersRepository")
         }
     }
 

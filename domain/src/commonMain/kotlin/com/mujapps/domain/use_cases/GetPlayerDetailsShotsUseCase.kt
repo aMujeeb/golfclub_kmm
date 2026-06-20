@@ -8,11 +8,16 @@ import io.github.aakira.napier.Napier
 
 class GetPlayerDetailsShotsUseCase(private val mIGolferRepository: IGolferRepository) {
 
-    fun execute(playerId: String): Flow<PlayerWithShots?> {
+    fun observePlayerShots(playerId: String): Flow<PlayerWithShots?> {
         Napier.d(
-            "Executing GetPlayerDetailsShotsUseCase for playerId: $playerId",
+            "Observing for playerId: $playerId",
             tag = "GetPlayerDetailsShotsUseCase"
         )
         return mIGolferRepository.getPlayerShots(playerId)
+    }
+
+    suspend fun syncPlayerShots(playerId: String) {
+        Napier.d("Syncing for playerId: $playerId", tag = "GetPlayerDetailsShotsUseCase")
+        mIGolferRepository.syncPlayerShots(playerId)
     }
 }
