@@ -68,6 +68,9 @@ kotlin {
                 implementation(libs.kotlinx.core)
                 implementation(libs.koin.core)
                 implementation(libs.kotlinx.io.core)
+
+                //Logging
+                implementation(libs.napier)
             }
         }
 

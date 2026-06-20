@@ -20,26 +20,28 @@ import io.github.aakira.napier.Napier
 
 
 val dataModule = module {
-    HttpClient {
-        install(ContentNegotiation) {
-            json(Json {
-                ignoreUnknownKeys = true
-                prettyPrint = true
-                isLenient = true
-            })
-        }
+    single<HttpClient> {
+        HttpClient {
+            install(ContentNegotiation) {
+                json(Json {
+                    ignoreUnknownKeys = true
+                    prettyPrint = true
+                    isLenient = true
+                })
+            }
 
-        install(Logging) {
-            level = LogLevel.ALL //At production level this should be set to NONE
-            logger = object : Logger {
-                override fun log(message: String) {
-                    Napier.d(tag = "HttpClient", message = message)
+            install(Logging) {
+                level = LogLevel.ALL //At production level this should be set to NONE
+                logger = object : Logger {
+                    override fun log(message: String) {
+                        Napier.d(tag = "HttpClient", message = message)
+                    }
                 }
             }
-        }
 
-        install(DefaultRequest) {
-            header(HttpHeaders.ContentType, ContentType.Application.Json)
+            install(DefaultRequest) {
+                header(HttpHeaders.ContentType, ContentType.Application.Json)
+            }
         }
     }
 
