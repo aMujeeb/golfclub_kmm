@@ -10,7 +10,6 @@ data class GolfPlayerDto(
     val preferenceClub: String,
     val averageBallSpeed: Double,
     val averageDistance: Double,
-    val shots: List<GolfShotDto>? = null
 )
 
 @Serializable

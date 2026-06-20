@@ -1,5 +1,6 @@
 package com.mujapps.data.di
 
+import com.mujapps.data.local.database.GolfDatabase
 import com.mujapps.data.remote.RemoteDataSource
 import com.mujapps.data.repositories.GolfersRepository
 import com.mujapps.domain.repositories.IGolferRepository
@@ -45,11 +46,14 @@ val dataModule = module {
         }
     }
 
+    single { get<GolfDatabase>().playerDao() }
+    single { get<GolfDatabase>().shotDao() }
+
     single<RemoteDataSource> {
         RemoteDataSource(get(), "https://6a2e5885c9776ca6c0c4846c.mockapi.io/api/v1")
     }
 
     single {
-        GolfersRepository(get())
+        GolfersRepository(get(), get(), get())
     } bind IGolferRepository::class
 }

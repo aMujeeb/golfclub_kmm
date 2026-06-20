@@ -27,11 +27,6 @@ fun GolfShotDto.toDomain(): GolfShot = GolfShot(
     mTimestamp = Instant.parse(createdAt)
 )
 
-fun GolfPlayerDto.toPlayerWithShots(): PlayerWithShots = PlayerWithShots(
-    mPlayer = toDomain(),
-    mShots = shots?.map { it.toDomain() } ?: emptyList()
-)
-
 fun GolfPlayer.toDto(): GolfPlayerDto = GolfPlayerDto(
     id = mId,
     name = mName,
@@ -39,7 +34,6 @@ fun GolfPlayer.toDto(): GolfPlayerDto = GolfPlayerDto(
     preferenceClub = mPreferenceClub,
     averageBallSpeed = mAverageBallSpeed,
     averageDistance = mAverageDistance,
-    shots = null
 )
 
 fun GolfShot.toDto(): GolfShotDto = GolfShotDto(

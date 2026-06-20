@@ -9,7 +9,8 @@ import org.koin.dsl.KoinAppDeclaration
 val appModule = listOf(
     dataModule,
     domainModule,
-    presentationModule
+    presentationModule,
+    databaseModule
 )
 
 fun initKoin(appDeclaration: KoinAppDeclaration = {}) =

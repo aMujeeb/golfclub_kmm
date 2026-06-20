@@ -6,8 +6,12 @@ import com.mujapps.data.mappers.toDomain
 import com.mujapps.data.remote.RemoteDataSource
 import com.mujapps.domain.models.GolfPlayer
 
+import com.mujapps.data.local.dao.PlayerDao
+import com.mujapps.data.mappers.toEntity
+
 class GolferPagingSource(
-    private val mRemoteDataSource: RemoteDataSource
+    private val mRemoteDataSource: RemoteDataSource,
+    private val playerDao: PlayerDao
 ) : PagingSource<Int, GolfPlayer>() {
 
     override fun getRefreshKey(state: PagingState<Int, GolfPlayer>): Int? {
@@ -20,19 +24,32 @@ class GolferPagingSource(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, GolfPlayer> {
         val page = params.key ?: 1
         val limit = params.loadSize
-        
+
         return try {
             val response = mRemoteDataSource.getGolfPlayers(page = page, limit = limit)
             val playersDto = response.getOrThrow()
+
+            // Save to DB
+            playerDao.insertPlayers(playersDto.map { it.toEntity() })
+
             val players = playersDto.map { it.toDomain() }
-            
+
             LoadResult.Page(
                 data = players,
                 prevKey = if (page == 1) null else page - 1,
                 nextKey = if (players.isEmpty() || players.size < limit) null else page + 1
             )
         } catch (e: Exception) {
-            LoadResult.Error(e)
+            val offlinePlayers = playerDao.getAllPlayersOffline().map { it.toDomain() }
+            if (offlinePlayers.isNotEmpty()) {
+                LoadResult.Page(
+                    data = offlinePlayers,
+                    prevKey = null,
+                    nextKey = null
+                )
+            } else {
+                LoadResult.Error(e)
+            }
         }
     }
 }

@@ -34,9 +34,10 @@ fun GolfPlayerDetailsView(
     ) {
         Text("Details View")
 
-        if (mDetailsUiState.value.mPlayerShots != null) {
-            val shots = mDetailsUiState.value.mPlayerShots
-            Text("Total Shots: ${shots?.size ?: 0}")
+        if (mDetailsUiState.value.mPlayerDetail != null) {
+            val details = mDetailsUiState.value.mPlayerDetail
+            Text("Player: ${details?.mPlayer?.mName ?: "Unknown"}")
+            Text("Total Shots: ${details?.mShots?.size ?: 0}")
         }
 
     }
