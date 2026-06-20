@@ -8,19 +8,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.mujapps.data.di.dataModule
 import com.mujapps.golfgarage.di.appModule
+import com.mujapps.golfgarage.di.initKoin
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
-import org.koin.core.context.GlobalContext.startKoin
-
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-
-        startKoin {
+        initKoin {
             androidLogger()
             androidContext(this@MainActivity)
-            modules(appModule)
         }
 
         setContent {

@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.kotlinSerialization)
 }
 
 kotlin {
@@ -51,6 +52,21 @@ kotlin {
             implementation(project(":domain"))
             implementation(project(":data"))
             implementation(project(":presentation"))
+
+            //Navigation 3.0
+            implementation(libs.androidx.navigation3.ui)
+            implementation(libs.jetbrains.lifecycle.viewmodel.nav3)
+            implementation(libs.jetbrains.lifecycle.viewmodel)
+            implementation(libs.koin.compose.navigation3)
+            implementation(libs.kotlinx.serialization.json)
+
+            //Koin
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose)
+            implementation(libs.koin.compose.viewmodel)
+
+            // Paging
+            implementation(libs.androidx.paging.compose)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

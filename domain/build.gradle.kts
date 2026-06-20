@@ -37,12 +37,6 @@ kotlin {
     // https://developer.android.com/kotlin/multiplatform/migrate
     val xcfName = "domainKit"
 
-    iosX64 {
-        binaries.framework {
-            baseName = xcfName
-        }
-    }
-
     iosArm64 {
         binaries.framework {
             baseName = xcfName
@@ -71,6 +65,9 @@ kotlin {
 
                 //Logging
                 implementation(libs.napier)
+
+                // Paging
+                implementation(libs.androidx.paging.common)
             }
         }
 
