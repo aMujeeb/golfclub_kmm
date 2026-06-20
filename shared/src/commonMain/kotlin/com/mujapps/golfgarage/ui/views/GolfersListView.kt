@@ -1,4 +1,4 @@
-package com.mujapps.golfgarage.views
+package com.mujapps.golfgarage.ui.views
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
+import com.mujapps.golfgarage.ui.components.PlayerRowItem
 import com.mujapps.presentation.features.player_listing.PlayerListingViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -51,7 +52,7 @@ fun GolfersListView(
         if (mUiState.value.mPlayerList.isNotEmpty()) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 items(mUiState.value.mPlayerList) { player ->
-                    Text(text = player.mName)
+                    PlayerRowItem(player)
                 }
             }
         } else {

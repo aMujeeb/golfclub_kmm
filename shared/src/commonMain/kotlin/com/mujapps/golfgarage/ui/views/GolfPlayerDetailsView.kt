@@ -1,4 +1,4 @@
-package com.mujapps.golfgarage.views
+package com.mujapps.golfgarage.ui.views
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable

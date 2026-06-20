@@ -8,8 +8,8 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
-import com.mujapps.golfgarage.views.GolfPlayerDetailsView
-import com.mujapps.golfgarage.views.GolfersListView
+import com.mujapps.golfgarage.ui.views.GolfPlayerDetailsView
+import com.mujapps.golfgarage.ui.views.GolfersListView
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 
