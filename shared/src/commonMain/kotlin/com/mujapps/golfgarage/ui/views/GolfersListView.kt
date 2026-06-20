@@ -23,7 +23,7 @@ import androidx.paging.compose.itemKey
 import com.mujapps.golfgarage.ui.components.PlayerRowItem
 import com.mujapps.presentation.features.player_listing.PlayerListingViewModel
 import org.koin.compose.viewmodel.koinViewModel
-
+import com.mujapps.golfgarage.navigation.NavRoutes
 @Composable
 fun GolfersListView(
     backStack: NavBackStack<NavKey>,
@@ -60,7 +60,9 @@ fun GolfersListView(
                 ) { index ->
                     val player = mPagingItems[index]
                     if (player != null) {
-                        PlayerRowItem(player)
+                        PlayerRowItem(player) {
+                            backStack.add(NavRoutes.Details(player.mId))
+                        }
                     }
                 }
 

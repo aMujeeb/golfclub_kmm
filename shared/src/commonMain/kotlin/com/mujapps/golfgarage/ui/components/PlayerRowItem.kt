@@ -1,5 +1,6 @@
 package com.mujapps.golfgarage.ui.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,9 +17,11 @@ import androidx.compose.ui.unit.sp
 import com.mujapps.domain.models.GolfPlayer
 
 @Composable
-fun PlayerRowItem(mPlayer: GolfPlayer) {
+fun PlayerRowItem(mPlayer: GolfPlayer, onSelectedPlayer: (String) -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clickable {
+            onSelectedPlayer(mPlayer.mId)
+        },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start
     ) {
