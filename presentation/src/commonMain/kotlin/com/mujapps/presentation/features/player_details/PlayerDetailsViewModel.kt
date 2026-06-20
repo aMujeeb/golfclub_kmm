@@ -20,7 +20,7 @@ class PlayerDetailsViewModel(
     fun getUserDetails() {
         viewModelScope.launch {
             _detailsUiState.update {
-                it.copy(mIsLoading = true, mErrorMessage = null, mPlayerShots = null)
+                it.copy(mIsLoading = true, mErrorMessage = null, mPlayerDetail = null)
             }
 
             try {
@@ -29,7 +29,7 @@ class PlayerDetailsViewModel(
                         it.copy(
                             mIsLoading = false,
                             mErrorMessage = null,
-                            mPlayerShots = details
+                            mPlayerDetail = details
                         )
                     }
                 }
@@ -38,7 +38,7 @@ class PlayerDetailsViewModel(
                     it.copy(
                         mIsLoading = false,
                         mErrorMessage = ex.message ?: "Unknown Error",
-                        mPlayerShots = null
+                        mPlayerDetail = null
                     )
                 }
             }
