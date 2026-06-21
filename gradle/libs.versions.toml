@@ -30,6 +30,7 @@ sqlite = "2.6.2"
 ksp = "2.3.9"
 kotlinx-io = "0.9.0"
 napier = "2.7.1"
+turbine = "1.2.1"
 
 [libraries]
 androidx-paging-common = { module = "androidx.paging:paging-common", version.ref = "androidx-paging" }
@@ -74,6 +75,7 @@ ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
+ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 
 #Logging
 napier = { module = "io.github.aakira:napier", version.ref = "napier" }
@@ -92,6 +94,9 @@ koin-compose-navigation3 = { module = "io.insert-koin:koin-compose-navigation3",
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
+
+#Turbine
+turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
