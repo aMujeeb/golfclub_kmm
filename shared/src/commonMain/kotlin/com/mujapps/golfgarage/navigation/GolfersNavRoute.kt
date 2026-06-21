@@ -11,6 +11,9 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.compose.viewmodel.koinViewModel
@@ -28,6 +31,7 @@ fun GolfersNavRoute(
     onToggleDarkTheme: () -> Unit,
 ) {
     val mListingViewModel: PlayerListingViewModel = koinViewModel()
+    var topBarTitle by remember { mutableStateOf("Player Details") }
 
     val mBackStack = rememberNavBackStack(
         configuration = SavedStateConfiguration {
@@ -60,9 +64,11 @@ fun GolfersNavRoute(
                 }
                 is NavRoutes.Details -> {
                     PlayerDetailsHeader(
+                        title = topBarTitle,
                         onBack = {
                             if (mBackStack.size > 1) {
                                 mBackStack.removeAt(mBackStack.lastIndex)
+                                topBarTitle = "Player Details"
                             }
                         },
                         isDarkTheme = isDarkTheme,
@@ -91,7 +97,11 @@ fun GolfersNavRoute(
                     }
 
                     is NavRoutes.Details -> NavEntry(key) {
-                        GolfPlayerDetailsView(key.mPlayerId, mBackStack)
+                        GolfPlayerDetailsView(
+                            mPlayerId = key.mPlayerId,
+                            backStack = mBackStack,
+                            onPlayerLoaded = { topBarTitle = it }
+                        )
                     }
 
                     else -> throw IllegalArgumentException("Invalid route: $key")

@@ -2,6 +2,7 @@ package com.mujapps.presentation.features
 
 import androidx.paging.PagingData
 import com.mujapps.domain.models.GolfPlayer
+import com.mujapps.domain.models.GolfShot
 import com.mujapps.domain.models.PlayerWithShots
 import com.mujapps.domain.repositories.IGolferRepository
 import kotlinx.coroutines.flow.Flow
@@ -11,6 +12,7 @@ class MockGolfRepository : IGolferRepository {
     
     var playerShotsResultFlow: Flow<PlayerWithShots?> = flowOf(null)
     var playersPagingFlowResult: Flow<PagingData<GolfPlayer>> = flowOf()
+    var allShotsResultFlow: Flow<List<GolfShot>> = flowOf(emptyList())
     
     var lastSyncedPlayerId: String? = null
     var syncPlayerShotsError: Throwable? = null
@@ -28,5 +30,9 @@ class MockGolfRepository : IGolferRepository {
 
     override fun getPlayersPagingFlow(query: String?, clubs: List<String>): Flow<PagingData<GolfPlayer>> {
         return playersPagingFlowResult
+    }
+
+    override fun getAllShots(): Flow<List<GolfShot>> {
+        return allShotsResultFlow
     }
 }

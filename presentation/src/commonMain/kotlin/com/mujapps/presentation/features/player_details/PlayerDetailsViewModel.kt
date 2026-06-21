@@ -27,16 +27,20 @@ class PlayerDetailsViewModel(
     // This allows us to track network loading/error states separately from the actual database data
     val mDetailsUiState = combine(
         _syncState,
-        mPlayerDetailsShotsUseCase.observePlayerShots(mPlayerId)
-    ) { syncState, playerDetail ->
+        mPlayerDetailsShotsUseCase.observePlayerShots(mPlayerId),
+        mPlayerDetailsShotsUseCase.observeAllShots()
+    ) { syncState, playerDetail, allShots ->
         // Napier log to verify when this merge happens
         Napier.d(
-            "Ui state and DB state",
+            "Ui state, DB state, and All shots updated",
             tag = "PlayerDetailsViewModel"
         )
 
         // We take the loading/error state from the API sync, but the data strictly from the DB!
-        syncState.copy(mPlayerDetail = playerDetail)
+        syncState.copy(
+            mPlayerDetail = playerDetail,
+            mAllShots = allShots
+        )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),

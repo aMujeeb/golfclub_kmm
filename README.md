@@ -217,9 +217,9 @@ The project follows a clean-architecture multi-module structure:
 | `:androidApp` | Android entry point; initializes Koin DI and launches the shared UI. |
 | `:iosApp` | iOS entry point; minimal wrapper for the shared KMP framework. |
 | `:shared` | Compose Multiplatform UI, the `App()` composable, iOS `MainViewController` factory. |
-| `:presentation` | ViewModels, UI state holders, navigation logic (under development). |
+| `:presentation` | ViewModels, UI state holders, navigation logic. |
 | `:domain` | Business rules, data model classes (`GolfPlayer`, `GolfShot`, etc.), repository interfaces, and use cases. |
-| `:data` | Repository implementations, Ktor networking, local persistence (TODO: Room entities/DAOs). |
+| `:data` | Repository implementations, Ktor networking, local persistence (Room entities/DAOs, offline-first). |
 
 For full module architecture details and build/test commands, see `CLAUDE.md` **Module Architecture** and **Build & Run** sections.
 
@@ -258,6 +258,20 @@ The application follows an **offline-first pattern** utilizing the local Room da
     *   Upon receiving a successful API response, the repository deletes stale cache and writes new records to the Room database.
     *   Since the UI is observing Room, it immediately receives the database updates and renders the new data.
 3.  **Graceful Degradation**: If the network request fails (e.g., connection timed out or offline), the ViewModel catches the exception to present a descriptive error toast/banner, while the user continues to see the previously cached data from the Room database.
+
+---
+
+## Performance & Caching Tuning
+
+The application implements performance optimizations to ensure a smooth, high-fidelity experience:
+
+1.  **Coil Image Caching**:
+    *   **Memory Cache**: Configured to dynamically allocate up to 25% of available system RAM for image bitmaps, preventing excessive garbage collection (GC) cycles.
+    *   **Disk Cache**: Uses the platform-agnostic Okio `SYSTEM_TEMPORARY_DIRECTORY` with a `coil_cache` directory and a maximum storage limit of 100 MB.
+    *   **Logging**: Traces configuration events inside `App` initialization using Napier log tags.
+2.  **Lazy Detail Screen List**:
+    *   Migrated the Player Details view from a static scrollable `Column` to a `LazyColumn`.
+    *   This ensures composables are recycled efficiently as they enter and exit the viewport, paving the way for smooth scrolling even with heavy graphics (such as scatter charts) and large inline shot histories.
 
 ---
 

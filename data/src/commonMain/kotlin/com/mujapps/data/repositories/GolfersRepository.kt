@@ -63,4 +63,10 @@ class GolfersRepository(
             } //Instantiating it inline in the repository is the standard pattern for KMP/Android Paging projects and is perfectly safe.
         ).flow
     }
+
+    override fun getAllShots(): Flow<List<GolfShot>> {
+        return shotDao.getAllShots()
+            .distinctUntilChanged()
+            .map { list -> list.map { it.toDomain() } }
+    }
 }
