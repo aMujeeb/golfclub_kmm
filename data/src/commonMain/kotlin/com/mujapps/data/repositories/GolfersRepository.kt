@@ -46,7 +46,7 @@ class GolfersRepository(
         }
     }
 
-    override fun getPlayersPagingFlow(): Flow<PagingData<GolfPlayer>> {
+    override fun getPlayersPagingFlow(query: String?): Flow<PagingData<GolfPlayer>> {
         return Pager(
             config = PagingConfig(
                 pageSize = 20,
@@ -56,7 +56,8 @@ class GolfersRepository(
             pagingSourceFactory = {
                 GolferPagingSource(
                     mRemoteDataSource,
-                    playerDao
+                    playerDao,
+                    query
                 )
             } //Instantiating it inline in the repository is the standard pattern for KMP/Android Paging projects and is perfectly safe.
         ).flow

@@ -12,8 +12,27 @@ import androidx.paging.cachedIn
 import com.mujapps.domain.models.GolfPlayer
 import kotlinx.coroutines.flow.Flow
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+
+@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 class PlayerListingViewModel(val mGetAllPlayersUseCase: GetAllPlayersUseCase) : ViewModel() {
-    val mPlayersPagingFlow: Flow<PagingData<GolfPlayer>> =
-        mGetAllPlayersUseCase.executePaging()
-            .cachedIn(viewModelScope)
+
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery = _searchQuery.asStateFlow()
+
+    val mPlayersPagingFlow: Flow<PagingData<GolfPlayer>> = searchQuery
+        .debounce(300)
+        .distinctUntilChanged()
+        .flatMapLatest { query ->
+            mGetAllPlayersUseCase.executePaging(query.takeIf { it.isNotBlank() })
+        }
+        .cachedIn(viewModelScope)
+
+    fun onSearchQueryChanged(query: String) {
+        _searchQuery.value = query
+    }
 }

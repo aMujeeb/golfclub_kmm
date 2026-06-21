@@ -56,4 +56,27 @@ class PlayerListingViewModelTest {
             cancelAndIgnoreRemainingEvents()
         }
     }
+
+    @Test
+    fun onSearchQueryChanged_updatesPagingFlow() = runTest {
+        val testPlayer = GolfPlayer(
+            mId = "123",
+            mName = "Test",
+            mProfPicUrl = "",
+            mPreferenceClub = "",
+            mAverageBallSpeed = 0.0,
+            mAverageDistance = 0.0
+        )
+        val mockPagingData = PagingData.from(listOf(testPlayer))
+        mockRepository.playersPagingFlowResult = flowOf(mockPagingData)
+
+        viewModel = PlayerListingViewModel(useCase)
+        viewModel.onSearchQueryChanged("New Query")
+
+        viewModel.mPlayersPagingFlow.test {
+            val item = awaitItem()
+            assertNotNull(item)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
 }

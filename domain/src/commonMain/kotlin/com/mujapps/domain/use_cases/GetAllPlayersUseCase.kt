@@ -9,8 +9,8 @@ import androidx.paging.PagingData
 
 class GetAllPlayersUseCase(private val mIGolferRepository: IGolferRepository) {
 
-    fun executePaging(): Flow<PagingData<GolfPlayer>> {
-        Napier.d("Executing GetAllPlayersUseCase executePaging", tag = "GetAllPlayersUseCase")
-        return mIGolferRepository.getPlayersPagingFlow()
+    fun executePaging(query: String? = null): Flow<PagingData<GolfPlayer>> {
+        Napier.d("Executing GetAllPlayersUseCase executePaging with query: $query", tag = "GetAllPlayersUseCase")
+        return mIGolferRepository.getPlayersPagingFlow(query)
     }
 }

@@ -11,7 +11,8 @@ import com.mujapps.data.mappers.toEntity
 
 class GolferPagingSource(
     private val mRemoteDataSource: RemoteDataSource,
-    private val playerDao: PlayerDao
+    private val playerDao: PlayerDao,
+    private val query: String? = null
 ) : PagingSource<Int, GolfPlayer>() {
 
     override fun getRefreshKey(state: PagingState<Int, GolfPlayer>): Int? {
@@ -26,7 +27,7 @@ class GolferPagingSource(
         val limit = params.loadSize
 
         return try {
-            val response = mRemoteDataSource.getGolfPlayers(page = page, limit = limit)
+            val response = mRemoteDataSource.getGolfPlayers(page = page, limit = limit, search = query)
             val playersDto = response.getOrThrow()
 
             // Save to DB
@@ -40,7 +41,11 @@ class GolferPagingSource(
                 nextKey = if (players.isEmpty() || players.size < limit) null else page + 1
             )
         } catch (e: Exception) {
-            val offlinePlayers = playerDao.getAllPlayersOffline().map { it.toDomain() }
+            val offlinePlayers = if (query.isNullOrBlank()) {
+                playerDao.getAllPlayersOffline()
+            } else {
+                playerDao.searchPlayersOffline("%$query%")
+            }.map { it.toDomain() }
             if (offlinePlayers.isNotEmpty()) {
                 LoadResult.Page(
                     data = offlinePlayers,

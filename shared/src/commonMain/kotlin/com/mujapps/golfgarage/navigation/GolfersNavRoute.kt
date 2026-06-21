@@ -11,6 +11,10 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.koin.compose.viewmodel.koinViewModel
+import com.mujapps.presentation.features.player_listing.PlayerListingViewModel
 import com.mujapps.golfgarage.ui.components.PlayerDetailsHeader
 import com.mujapps.golfgarage.ui.components.PlayersListHeader
 import com.mujapps.golfgarage.ui.views.GolfPlayerDetailsView
@@ -23,6 +27,8 @@ fun GolfersNavRoute(
     isDarkTheme: () -> Boolean,
     onToggleDarkTheme: () -> Unit,
 ) {
+    val mListingViewModel: PlayerListingViewModel = koinViewModel()
+
     val mBackStack = rememberNavBackStack(
         configuration = SavedStateConfiguration {
             serializersModule =
@@ -41,7 +47,10 @@ fun GolfersNavRoute(
             val currentRoute = mBackStack.lastOrNull()
             when (currentRoute) {
                 is NavRoutes.Listing -> {
+                    val searchQuery by mListingViewModel.searchQuery.collectAsStateWithLifecycle()
                     PlayersListHeader(
+                        searchQuery = searchQuery,
+                        onSearchQueryChanged = { mListingViewModel.onSearchQueryChanged(it) },
                         isDarkTheme = isDarkTheme,
                         onToggleDarkTheme = onToggleDarkTheme,
                     )
@@ -74,6 +83,7 @@ fun GolfersNavRoute(
                     is NavRoutes.Listing -> NavEntry(key) {
                         GolfersListView(
                             backStack = mBackStack,
+                            mViewModel = mListingViewModel,
                         )
                     }
 

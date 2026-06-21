@@ -26,7 +26,7 @@ class MockGolfRepository : IGolferRepository {
         syncPlayerShotsError?.let { throw it }
     }
 
-    override fun getPlayersPagingFlow(): Flow<PagingData<GolfPlayer>> {
+    override fun getPlayersPagingFlow(query: String?): Flow<PagingData<GolfPlayer>> {
         return playersPagingFlowResult
     }
 }
