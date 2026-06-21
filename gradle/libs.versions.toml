@@ -31,7 +31,7 @@ kotlinx-io = "0.9.0"
 napier = "2.7.1"
 turbine = "1.2.1"
 composeIcons = "1.1.1"
-kover = "0.7.6"
+kover = "0.9.8"
 
 [libraries]
 androidx-paging-common = { module = "androidx.paging:paging-common", version.ref = "androidx-paging" }
