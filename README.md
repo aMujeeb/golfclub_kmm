@@ -327,6 +327,16 @@ Run the following Gradle commands from your terminal:
     ./gradlew :data:testAndroidHostTest
     ```
 
+### Generating Code Coverage Reports
+
+This project utilizes JetBrains **Kotlinx-Kover** to track coverage. Generate a combined aggregate HTML coverage report for all KMP modules with:
+```bash
+./gradlew koverHtmlReport
+```
+This generates the interactive webpage index at:
+- **Merged Project Coverage**: `build/reports/kover/html/index.html`
+- **Module-Specific Coverage**: `[module-name]/build/reports/kover/html/index.html`
+
 ---
 
 ## Logging
