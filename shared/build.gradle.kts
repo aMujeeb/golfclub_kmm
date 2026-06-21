@@ -59,6 +59,7 @@ kotlin {
             implementation(libs.jetbrains.lifecycle.viewmodel)
             implementation(libs.koin.compose.navigation3)
             implementation(libs.kotlinx.serialization.json)
+            implementation(libs.kotlinx.datetime)
 
             //Koin
             implementation(libs.koin.core)

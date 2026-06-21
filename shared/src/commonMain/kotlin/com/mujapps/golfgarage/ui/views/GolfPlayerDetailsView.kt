@@ -2,6 +2,7 @@ package com.mujapps.golfgarage.ui.views
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +37,10 @@ import coil3.compose.AsyncImage
 import com.mujapps.presentation.features.player_details.PlayerDetailsViewModel
 import com.mujapps.golfgarage.ui.components.MetricCard
 import com.mujapps.golfgarage.ui.components.ScatterPlot
+import com.mujapps.golfgarage.ui.components.ShotCard
+import com.mujapps.golfgarage.navigation.NavRoutes
+import com.mujapps.golfgarage.ui.theme.ExtendedTheme
+import androidx.compose.ui.text.font.FontWeight
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Outline
 import compose.icons.evaicons.outline.Person
@@ -126,6 +131,27 @@ fun GolfPlayerDetailsView(
             val playerShots = playerDetail.mShots
             val allShots = mDetailsUiState.value.mAllShots
             val hasShots = playerShots.isNotEmpty()
+            val syncErrorMessage = mDetailsUiState.value.mErrorMessage
+
+            if (!hasShots && syncErrorMessage != null) {
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = ExtendedTheme.colors.warning.copy(alpha = 0.12f)
+                        )
+                    ) {
+                        Text(
+                            text = "Shot data unavailable offline. Connect to the internet to load this player's shots.",
+                            modifier = Modifier.padding(12.dp),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = ExtendedTheme.colors.warning
+                        )
+                    }
+                }
+            }
 
             // Calculate player averages
             val playerAvgBallSpeed = if (hasShots) playerShots.map { it.mBallSpeed }.average() else 0.0
@@ -288,6 +314,34 @@ fun GolfPlayerDetailsView(
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            if (playerShots.isNotEmpty()) {
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                color = MaterialTheme.colorScheme.primary,
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            .clickable {
+                                backStack.add(NavRoutes.Shots(mPlayerId))
+                            }
+                            .padding(vertical = 14.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "View Shots History",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold
+                            ),
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(40.dp))
+                }
             }
         } else if (mDetailsUiState.value.mIsLoading) {
             item {

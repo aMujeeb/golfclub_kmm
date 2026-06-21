@@ -14,4 +14,8 @@ sealed interface NavRoutes : NavKey {
     @Serializable
     @SerialName("Details")
     data class Details(val mPlayerId: String) : NavRoutes
+
+    @Serializable
+    @SerialName("Shots")
+    data class Shots(val mPlayerId: String) : NavRoutes
 }
