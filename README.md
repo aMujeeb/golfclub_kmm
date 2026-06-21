@@ -280,6 +280,10 @@ The application implements performance optimizations to ensure a smooth, high-fi
 3.  **In-Memory Filtering (Shots Screen)**:
     *   To avoid redundant local database queries or remote network calls when filtering, the `PlayerShotDetailsViewModel` processes club filtering entirely in-memory using Kotlin `StateFlow` combiners.
     *   **Stable Shot Numbering & Default Sort**: Shot records are pre-sorted chronologically (ascending) in the ViewModel to compute a stable, absolute sequential shot number (e.g. `SHOT #8`). After filtering, they are displayed sorted by newest first (descending timestamp). This guarantees that each shot's label remains consistent even under active filters.
+4.  **Collapsing Profile Header Motion Animation (Details Screen)**:
+    *   Implements a classic MotionLayout-style collapsing toolbar natively in Compose Multiplatform.
+    *   Uses a `LazyListState` listener on the scrolling detail screen to dynamically calculate the card offset collapse fraction (`0.0f` to `1.0f`).
+    *   Fades out the main profile card and dynamically slides/fades in a compact 32.dp profile avatar circle and player name in the top app bar as the user scrolls, maximizing space for analytics and shot history.
 
 ---
 

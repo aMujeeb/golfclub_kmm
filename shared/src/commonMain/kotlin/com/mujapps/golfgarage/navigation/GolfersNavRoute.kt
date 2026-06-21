@@ -25,6 +25,7 @@ import com.mujapps.golfgarage.ui.views.GolfersListView
 import com.mujapps.golfgarage.ui.views.GolfPlayerShotsView
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
+import io.github.aakira.napier.Napier
 
 @Composable
 fun GolfersNavRoute(
@@ -33,6 +34,10 @@ fun GolfersNavRoute(
 ) {
     val mListingViewModel: PlayerListingViewModel = koinViewModel()
     var topBarTitle by remember { mutableStateOf("Player Details") }
+    
+    // Collapsing toolbar animation states (Collapsing header)
+    var collapseProgress by remember { mutableStateOf(0f) }
+    var profilePicUrl by remember { mutableStateOf<String?>(null) }
 
     val mBackStack = rememberNavBackStack(
         configuration = SavedStateConfiguration {
@@ -64,7 +69,7 @@ fun GolfersNavRoute(
                         onToggleDarkTheme = onToggleDarkTheme,
                     )
                 }
-                is NavRoutes.Details, is NavRoutes.Shots -> {
+                is NavRoutes.Details -> {
                     PlayerDetailsHeader(
                         title = topBarTitle,
                         onBack = {
@@ -72,11 +77,29 @@ fun GolfersNavRoute(
                                 mBackStack.removeAt(mBackStack.lastIndex)
                                 if (mBackStack.lastOrNull() is NavRoutes.Listing) {
                                     topBarTitle = "Player Details"
+                                    collapseProgress = 0f
+                                    profilePicUrl = null
                                 }
                             }
                         },
                         isDarkTheme = isDarkTheme,
                         onToggleDarkTheme = onToggleDarkTheme,
+                        collapseProgress = collapseProgress,
+                        profilePicUrl = profilePicUrl
+                    )
+                }
+                is NavRoutes.Shots -> {
+                    PlayerDetailsHeader(
+                        title = topBarTitle,
+                        onBack = {
+                            if (mBackStack.size > 1) {
+                                mBackStack.removeAt(mBackStack.lastIndex)
+                            }
+                        },
+                        isDarkTheme = isDarkTheme,
+                        onToggleDarkTheme = onToggleDarkTheme,
+                        collapseProgress = 1f,
+                        profilePicUrl = null
                     )
                 }
                 else -> {}
@@ -104,7 +127,12 @@ fun GolfersNavRoute(
                         GolfPlayerDetailsView(
                             mPlayerId = key.mPlayerId,
                             backStack = mBackStack,
-                            onPlayerLoaded = { topBarTitle = it }
+                            onPlayerLoaded = { topBarTitle = it },
+                            onScrollStateChanged = { progress -> 
+                                Napier.d("Received Details scroll transition: $progress", tag = "GolfersNavRoute")
+                                collapseProgress = progress 
+                            },
+                            onProfileImageLoaded = { url -> profilePicUrl = url }
                         )
                     }
 

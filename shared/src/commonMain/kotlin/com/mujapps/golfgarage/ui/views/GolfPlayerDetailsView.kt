@@ -49,12 +49,19 @@ import org.koin.core.parameter.parametersOf
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import kotlin.math.roundToInt
 
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import io.github.aakira.napier.Napier
+
 @Composable
 fun GolfPlayerDetailsView(
     mPlayerId: String,
     backStack: NavBackStack<NavKey>,
     onPlayerLoaded: (String) -> Unit,
-    mViewModel: PlayerDetailsViewModel = koinViewModel(parameters = { parametersOf(mPlayerId) })
+    mViewModel: PlayerDetailsViewModel = koinViewModel(parameters = { parametersOf(mPlayerId) }),
+    listState: LazyListState = rememberLazyListState(),
+    onScrollStateChanged: (Float) -> Unit = {},
+    onProfileImageLoaded: (String?) -> Unit = {}
 ) {
 
     val mDetailsUiState = mViewModel.mDetailsUiState.collectAsStateWithLifecycle()
@@ -68,10 +75,33 @@ fun GolfPlayerDetailsView(
     LaunchedEffect(player) {
         if (player != null) {
             onPlayerLoaded(player.mName)
+            onProfileImageLoaded(player.mProfPicUrl)
+        }
+    }
+
+    // Scroll metrics calculations to update collapsing toolbar progress
+    LaunchedEffect(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
+        if (listState.firstVisibleItemIndex > 0) {
+            onScrollStateChanged(1f) // Fully collapsed
+        } else {
+            // First item (Profile card) size calculation fallback
+            val layoutInfo = listState.layoutInfo
+            val firstItem = layoutInfo.visibleItemsInfo.firstOrNull { it.index == 0 }
+            if (firstItem != null) {
+                val size = firstItem.size.toFloat()
+                if (size > 0f) {
+                    val progress = (listState.firstVisibleItemScrollOffset.toFloat() / size).coerceIn(0f, 1f)
+                    Napier.d("Collapsing toolbar progress: $progress", tag = "GolfPlayerDetailsView")
+                    onScrollStateChanged(progress)
+                }
+            } else {
+                onScrollStateChanged(0f)
+            }
         }
     }
 
     LazyColumn(
+        state = listState,
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
