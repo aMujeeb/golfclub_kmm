@@ -48,9 +48,12 @@ fun GolfersNavRoute(
             when (currentRoute) {
                 is NavRoutes.Listing -> {
                     val searchQuery by mListingViewModel.searchQuery.collectAsStateWithLifecycle()
+                    val selectedClubs by mListingViewModel.selectedClubs.collectAsStateWithLifecycle()
                     PlayersListHeader(
                         searchQuery = searchQuery,
                         onSearchQueryChanged = { mListingViewModel.onSearchQueryChanged(it) },
+                        selectedClubs = selectedClubs,
+                        onClubFilterToggled = { mListingViewModel.onClubFilterToggled(it) },
                         isDarkTheme = isDarkTheme,
                         onToggleDarkTheme = onToggleDarkTheme,
                     )

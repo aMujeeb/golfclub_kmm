@@ -18,21 +18,43 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 
+import kotlinx.coroutines.flow.combine
+
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 class PlayerListingViewModel(val mGetAllPlayersUseCase: GetAllPlayersUseCase) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
 
-    val mPlayersPagingFlow: Flow<PagingData<GolfPlayer>> = searchQuery
-        .debounce(300)
+    private val _selectedClubs = MutableStateFlow<Set<String>>(emptySet())
+    val selectedClubs = _selectedClubs.asStateFlow()
+
+    val mPlayersPagingFlow: Flow<PagingData<GolfPlayer>> = combine(
+        searchQuery.debounce(300),
+        selectedClubs
+    ) { query, clubs ->
+        Pair(query, clubs)
+    }
         .distinctUntilChanged()
-        .flatMapLatest { query ->
-            mGetAllPlayersUseCase.executePaging(query.takeIf { it.isNotBlank() })
+        .flatMapLatest { (query, clubs) ->
+            mGetAllPlayersUseCase.executePaging(
+                query = query.takeIf { it.isNotBlank() },
+                clubs = clubs.toList()
+            )
         }
         .cachedIn(viewModelScope)
 
     fun onSearchQueryChanged(query: String) {
         _searchQuery.value = query
+    }
+
+    fun onClubFilterToggled(club: String) {
+        _selectedClubs.update { currentSelected ->
+            if (currentSelected.contains(club)) {
+                currentSelected - club
+            } else {
+                currentSelected + club
+            }
+        }
     }
 }

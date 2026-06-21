@@ -1,12 +1,17 @@
 package com.mujapps.golfgarage.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -22,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Outline
 import compose.icons.evaicons.outline.ArrowBack
+import compose.icons.evaicons.outline.Checkmark
 import compose.icons.evaicons.outline.Close
 import compose.icons.evaicons.outline.Search
 
@@ -29,6 +35,8 @@ import compose.icons.evaicons.outline.Search
 fun PlayersListHeader(
     searchQuery: String,
     onSearchQueryChanged: (String) -> Unit,
+    selectedClubs: Set<String>,
+    onClubFilterToggled: (String) -> Unit,
     isDarkTheme: () -> Boolean,
     onToggleDarkTheme: () -> Unit,
     modifier: Modifier = Modifier,
@@ -90,6 +98,55 @@ fun PlayersListHeader(
                 unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
             )
         )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+                .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val clubs =
+                listOf("Dynamites", "Pirates", "Dinosours", "Gladiators", "Drunken Warriors")
+            clubs.forEach { club ->
+                val isSelected = selectedClubs.contains(club)
+                FilterChip(
+                    selected = isSelected,
+                    onClick = { onClubFilterToggled(club) },
+                    label = {
+                        Text(
+                            text = club,
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    },
+                    leadingIcon = if (isSelected) {
+                        {
+                            Icon(
+                                imageVector = EvaIcons.Outline.Checkmark,
+                                contentDescription = "Selected",
+                                modifier = Modifier.size(FilterChipDefaults.IconSize)
+                            )
+                        }
+                    } else null,
+                    shape = RoundedCornerShape(percent = 50),
+                    colors = FilterChipDefaults.filterChipColors(
+                        containerColor = Color.Transparent,
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        enabled = true,
+                        selected = isSelected,
+                        borderColor = MaterialTheme.colorScheme.outlineVariant,
+                        selectedBorderColor = MaterialTheme.colorScheme.primary,
+                        borderWidth = 1.dp,
+                        selectedBorderWidth = 1.dp
+                    )
+                )
+            }
+        }
 
         HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
     }
