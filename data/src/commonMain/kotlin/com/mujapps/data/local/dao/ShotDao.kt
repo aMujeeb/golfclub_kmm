@@ -15,4 +15,7 @@ interface ShotDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertShots(shots: List<GolfShotEntity>)
+
+    @Query("SELECT * FROM shot")
+    fun getAllShots(): Flow<List<GolfShotEntity>>
 }

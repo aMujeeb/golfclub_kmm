@@ -32,18 +32,14 @@ class GolfersRepository(
 
     override suspend fun syncPlayerShots(playerId: String) {
         Napier.d("Starting background API sync for playerId: $playerId", tag = "GolfersRepository")
-        try {
-            val response = mRemoteDataSource.getGolfPlayerShots(playerId)
-            response.onSuccess { dtos ->
-                Napier.d("API sync success! Saving ${dtos.size} shots to DB", tag = "GolfersRepository")
-                shotDao.deleteShotsForPlayer(playerId)
-                shotDao.insertShots(dtos.map { it.toEntity() })
-            }.onFailure {
-                Napier.e("API sync failed for playerId: $playerId", it, tag = "GolfersRepository")
-            }
-        } catch (e: Exception) {
-            Napier.e("Network exception during sync for playerId: $playerId", e, tag = "GolfersRepository")
+        val response = mRemoteDataSource.getGolfPlayerShots(playerId)
+        response.onFailure {
+            Napier.e("API sync failed for playerId: $playerId", it, tag = "GolfersRepository")
         }
+        val dtos = response.getOrThrow()
+        Napier.d("API sync success! Saving ${dtos.size} shots to DB", tag = "GolfersRepository")
+        shotDao.deleteShotsForPlayer(playerId)
+        shotDao.insertShots(dtos.map { it.toEntity() })
     }
 
     override fun getPlayersPagingFlow(query: String?, clubs: List<String>): Flow<PagingData<GolfPlayer>> {
@@ -62,5 +58,11 @@ class GolfersRepository(
                 )
             } //Instantiating it inline in the repository is the standard pattern for KMP/Android Paging projects and is perfectly safe.
         ).flow
+    }
+
+    override fun getAllShots(): Flow<List<GolfShot>> {
+        return shotDao.getAllShots()
+            .distinctUntilChanged()
+            .map { list -> list.map { it.toDomain() } }
     }
 }

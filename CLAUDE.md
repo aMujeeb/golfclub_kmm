@@ -211,13 +211,18 @@ data class PlayerWithShots(
 
 **Note:** The spec in `SPEC.md` / `README.md` defines a richer data model (`Player`, `Shot`, `Metric` with `averageMetrics`, `lastShot`, `joined`, shot `type`/`time` fields, etc.). The current implementation is a simplified starting point; mappers are wired to convert the network DTOs to these current domain models. As the UI is built out, the domain models may be expanded to match the full spec. Don't confuse this domain `PlayerWithShots` with the Room-specific `PlayerWithShots` in `data/.../local/entities/`.
 
+`IGolferRepository.getPlayersPagingFlow(query: String? = null, clubs: List<String> = emptyList())` and `GetAllPlayersUseCase.executePaging(query, clubs)` both take optional search/club-filter params now, threaded down to `GolferPagingSource`/`PlayerDao` (see **Navigation & State** above for how the UI wires these).
+
 ## Navigation & State
 
 Navigation uses AndroidX **Navigation3** (`androidx.navigation3.runtime`), not a hand-rolled sealed `Route`/`AppState`:
 - Routes are `NavRoutes` (`@Serializable sealed interface NavRoutes : NavKey`) in `shared/src/commonMain/kotlin/com/mujapps/golfgarage/navigation/NavRoutes.kt`, currently with two cases: `Listing` (object) and `Details(val mPlayerId: String)`. **No `Shots` route exists yet**, despite three screens being planned.
-- `GolfersNavRoute()` (`shared/.../navigation/GolfersNavRoute.kt`) owns a `rememberNavBackStack`, renders via `NavDisplay`/`NavEntry`, and passes the live back stack down to screens for `backStack.add(...)` navigation.
-- There is no single `AppState`. Each screen owns its own UI state class instead: `ListingUiState` and `DetailsUiState` (under `presentation/src/commonMain/kotlin/com/mujapps/presentation/features/`), holding `mIsLoading`/`mErrorMessage`/data. Search query and club filter are **not implemented** anywhere yet — don't assume the AND-combined filter logic from earlier specs exists.
-- Dark theme toggling doesn't exist yet — `App.kt` hardcodes `darkTheme` via a local `remember { mutableStateOf(false) }` with no UI control wired to it.
+- `GolfersNavRoute(isDarkTheme: () -> Boolean, onToggleDarkTheme: () -> Unit)` (`shared/.../navigation/GolfersNavRoute.kt`) owns a `rememberNavBackStack` and wraps everything in a single `Scaffold`. The `Scaffold`'s `topBar` is route-aware: it switches on `mBackStack.lastOrNull()` and renders `PlayersListHeader` for `NavRoutes.Listing` or `PlayerDetailsHeader` for `NavRoutes.Details` (both in `ui/components/PlayersListHeader.kt`). The `NavDisplay`/`NavEntry` content renders below, padded by the Scaffold's `innerPadding`.
+- `PlayerListingViewModel` is hoisted **once** at the `GolfersNavRoute` level via `koinViewModel()` and shared between the topBar (search box + filter chips) and `GolfersListView`'s content (passed in as `mViewModel`), rather than each screen creating its own instance.
+- There is no single `AppState`. Each screen owns its own UI state class instead: `ListingUiState`/`PlayerListingViewModel` and `DetailsUiState`/`PlayerDetailsViewModel` (under `presentation/src/commonMain/kotlin/com/mujapps/presentation/features/`).
+- **Search & club filter are implemented** in `PlayerListingViewModel`: `searchQuery: StateFlow<String>` and `selectedClubs: StateFlow<Set<String>>`, updated via `onSearchQueryChanged(query)` / `onClubFilterToggled(club)`. Both are `combine`d, debounced (300ms) on the query, and `flatMapLatest`'d into `mGetAllPlayersUseCase.executePaging(query, clubs)` — filtering triggers a new paging load rather than filtering an already-loaded client-side list. `GolferPagingSource` (`:data`) passes `search` through to the API and falls back to `PlayerDao.searchPlayersOffline()` when offline; club matching (`preferenceClub.contains(club, ignoreCase = true)`, OR-combined across selected clubs) is applied client-side on each loaded page, both online and offline.
+- **Club filter chip labels are placeholder/seed data**, not the design spec's clubs: `PlayersListHeader.kt` hardcodes `listOf("Dynamites", "Pirates", "Dinosours", "Gladiators", "Drunken Warriors")` — these match the actual API's seeded `preferenceClub` values, not `SPEC.md`'s `Driver`/`Fairway Woods`/`Irons`/`Wedges`.
+- Dark theme: `App.kt` owns `var darkTheme by remember { mutableStateOf(false) }` at the root and passes it down as `isDarkTheme = { darkTheme }` / `onToggleDarkTheme = { darkTheme = !darkTheme }` — lambdas, not raw values, so the read is deferred to wherever it's actually consumed. `ThemeModeToggleButton` (`ui/components/ThemeModeToggleButton.kt`) renders a pill reading "Dark Mode" / "Light Mode" and is wired into both `PlayersListHeader` and `PlayerDetailsHeader`, so toggling affects the single root `GolfGarageTheme` instance — the whole app, not a per-screen theme.
 
 ## Theme & Design Tokens
 
@@ -225,16 +230,16 @@ Defined in `:shared` (`ui/theme/Color.kt`, `ui/theme/Theme.kt`) — implemented 
 - `surface` → card color (`#F6F8F8` light / `#1E1E1E` dark)
 - `primary` → teal accent (`#0F766E` light / `#4ECDC1` dark)
 - `secondary` → amber/bronze for shot-type badges
-- `success`/`warning` colors for delta lines exist as raw `Color` vals (`LightSuccess`, `DarkWarning`, etc.) in `Color.kt`, but are **not yet wired into** the M3 `ColorScheme` — no custom token/extension exposes them via `MaterialTheme` yet, so consume the raw vals directly for now
+- `success`/`warning`/`primarySoft`/`shadow` — M3's `ColorScheme` has no slot for these, so they're exposed via a custom `ExtendedColors` data class + `ExtendedTheme.colors` CompositionLocal accessor (`ui/theme/ExtendedColors.kt`), provided by `GolfGarageTheme` alongside `MaterialTheme`. Consume as `ExtendedTheme.colors.success` / `.warning` / `.primarySoft` / `.shadow` (e.g. `PlayerRowItem`'s card shadow uses `ExtendedTheme.colors.shadow`).
 
-Typography is intended to use **Inter** for all UI text and **Roboto Mono** for labels, metric values, and timestamps (see `SPEC.md` §Typography for the full type scale), but **the actual fonts aren't wired up yet** — `Theme.kt`'s `GolfGarageTypography` currently uses `FontFamily.Default`/`FontFamily.Monospace` as placeholders (no font files exist in the repo). The numeric type scale (sizes/line-heights/letter-spacing) does match `SPEC.md`.
+Typography uses real **Inter** and **Roboto Mono** TTFs loaded as Compose Multiplatform resources (`shared/src/commonMain/composeResources/font/`). `Theme.kt` exposes a `@Composable fun golfGarageTypography(): Typography` (not a static `val`, since `Font(Res.font.*, ...)` needs a resource-aware context) that builds `FontFamily`s from the font resources and matches `SPEC.md`'s numeric type scale (sizes/line-heights/letter-spacing) exactly.
 
 ## Implementation Status (screens)
 
-- **Players list** (`GolfersListView.kt`) — functional, paginated via Paging 3, with loading/error/append states handled. No search box, filter chips, or theme toggle yet.
-- **Player Details** (`GolfPlayerDetailsView.kt`) — stub only (`Text("Details View")` + player name + shot count). No averages grid, scatter chart, or inline shot records yet.
+- **Players list** (`GolfersListView.kt` + `PlayersListHeader.kt`) — functional: paginated via Paging 3 with loading/error/append states, a debounced search box (name substring match), multi-select club filter chips, and the shared theme-toggle pill in the header. `PlayerRowItem.kt` renders each row as a themed card (Coil `AsyncImage` avatar with Eva Icons placeholder/error fallback, name/club/avg-speed-and-distance line) — the design's right-aligned "last shot" timestamp is intentionally skipped. Average speed/distance are displayed with relabeled units ("Km/h", "m") using the raw API values — no unit conversion math is applied.
+- **Player Details** (`GolfPlayerDetailsView.kt`) — still a stub (`Text("Details View")` + player name + shot count) beyond the shared `PlayerDetailsHeader` (back button + theme toggle) now rendered for this route. No averages grid, scatter chart, or inline shot records yet — this is the focus of the `feat/player_details_view` branch.
 - **Shots** screen — not started; no route, composable, or ViewModel exists.
-- None of `SPEC.md`'s reusable components (SearchBox, FilterChip, MetricCard, ShotCard, AvatarCircle, TopBar, ScatterPlot) exist as separate composables yet. `ui/components/PlayerRowItem.kt` is the only built component so far (avatar via Coil `AsyncImage` + Eva Icons placeholder/error fallback; player name is a plain, not-yet-theme-driven `Text`).
+- Built reusable components so far: `PlayerRowItem`, `PlayersListHeader`/`PlayerDetailsHeader`, `ThemeModeToggleButton`. `SPEC.md`'s remaining components (MetricCard, ShotCard, AvatarCircle, ScatterPlot) don't exist yet.
 
 ## iOS Integration
 

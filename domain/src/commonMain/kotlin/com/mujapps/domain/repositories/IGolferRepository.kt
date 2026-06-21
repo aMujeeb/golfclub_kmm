@@ -10,4 +10,5 @@ interface IGolferRepository {
     fun getPlayerShots(playerId: String): Flow<PlayerWithShots?>
     suspend fun syncPlayerShots(playerId: String)
     fun getPlayersPagingFlow(query: String? = null, clubs: List<String> = emptyList()): Flow<PagingData<GolfPlayer>>
+    fun getAllShots(): Flow<List<GolfShot>>
 }

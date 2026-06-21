@@ -4,6 +4,7 @@ import com.mujapps.domain.use_cases.GetAllPlayersUseCase
 import com.mujapps.domain.use_cases.GetPlayerDetailsShotsUseCase
 import com.mujapps.presentation.features.player_details.PlayerDetailsViewModel
 import com.mujapps.presentation.features.player_listing.PlayerListingViewModel
+import com.mujapps.presentation.features.player_shot_details.PlayerShotDetailsViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
@@ -14,6 +15,13 @@ val presentationModule = module {
 
     viewModel { (playerId: String) ->
         PlayerDetailsViewModel(
+            get<GetPlayerDetailsShotsUseCase>(),
+            playerId
+        )
+    }
+
+    viewModel { (playerId: String) ->
+        PlayerShotDetailsViewModel(
             get<GetPlayerDetailsShotsUseCase>(),
             playerId
         )

@@ -154,6 +154,7 @@ fun PlayersListHeader(
 
 @Composable
 fun PlayerDetailsHeader(
+    title: String,
     onBack: () -> Unit,
     isDarkTheme: () -> Boolean,
     onToggleDarkTheme: () -> Unit,
@@ -179,7 +180,7 @@ fun PlayerDetailsHeader(
                     )
                 }
                 Text(
-                    text = "Player Details",
+                    text = title,
                     style = MaterialTheme.typography.displayLarge,
                     color = MaterialTheme.colorScheme.onBackground,
                 )

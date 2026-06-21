@@ -7,7 +7,7 @@ This is a Kotlin Multiplatform project targeting Android, iOS.
 ## Overview
 A mobile app for browsing golf players and inspecting each player's performance. Three screens:
 1. **Players** — searchable, filterable list of players.
-2. **Player Details** — a selected player's profile with three vertical sections: Averages, a Launch-Angle-vs-Carry-Distance scatter chart, and an inline list of that player's shot records.
+2. **Player Details** — a selected player's profile displaying performance averages, a Launch-Angle-vs-Carry-Distance scatter chart, and a button to view the full Shots History.
 3. **Shots** — the full shot-record history for the selected player.
 
 Target implementation: **Kotlin Multiplatform Mobile (KMM)** with **Compose Multiplatform** for shared UI.
@@ -127,17 +127,15 @@ Key styles (weight / size / line-height / letter-spacing):
   - Four metrics in order: **Average Ball Speed** (mph), **Average Launch Angle** (°, 1 decimal), **Average Carry Distance** (yd), **Average Spin Rate** (RPM, thousands-separated).
   - Delta line: `"{+/−}{abs} {unit} vs avg"`; color = success when delta ≥ 0, warning when < 0. (− is the U+2212 minus sign.)
 - **Section 2 — LAUNCH ANGLE vs CARRY DISTANCE** (label): a card containing an SVG scatter plot. X = launch angle (°, domain ~10–44), Y = carry distance (yd, domain ~70–270). Gridlines at carry 100/160/220; X ticks at 15°/25°/35°/42°; one dot per shot (r=6, primary fill 82% opacity, 2px card-colored stroke). Below: axis captions "← launch angle (°)" / "carry (yd) ↑".
-- **Section 3 — SHOT RECORDS** (label row): label `"SHOT RECORDS · {n} shot(s)"` + "See all ›" link (primary) → navigates to Shots screen. Below: vertical list (gap 9px) of compact shot cards. Each card (radius 14px) is tappable → Shots screen, and shows:
-  - Row: club name (Inter 600 13px) + shot-type badge (Roboto Mono 600 10px, secondary color, primary-soft bg, pill).
-  - Wrapped stat group (gap 6×16): SPEED / LAUNCH / CARRY / SPIN micro-labels with values.
-  - Footer row: `"SHOT #{n}"` + time (Roboto Mono 500 11px text2).
+- **Section 3 — SHOT HISTORY NAVIGATION**: A dedicated button at the bottom of the details screen that reads "View Shots History" and navigates to the Shots History screen.
 
 ### 3. Shots (full history)
 **Purpose:** Full detail of every shot for the selected player.
 
-**Layout:** Top bar (back + "{name} · Shots") + filter row + scrolling list.
-- **Filter row** (bottom border): two display-only pills — "All clubs ▾" and "Recent ↓". (Static in the prototype; wire to real sort/filter in the build.)
-- **List** (padding 16×16, bottom 100px): per shot — a label "SHOT #{n} · {club}" (Roboto Mono 600 12px primary) above a card (radius 16px) of label/value rows separated by dividers: Ball Speed, Launch Angle, Carry Distance, Spin Rate, Shot Type (secondary color), Time (text2). Each row: padding 11px vertical, label Inter 400 13px text2, value Roboto Mono 600 14px.
+- **Layout:** Top bar (back + "Shots") + filter row + scrolling list.
+- **Filter row** (bottom border): one interactive dropdown menu:
+  - **Club Filter**: "All clubs ▾", allowing in-memory filtering by real club data (`"Putter", "Pitching Wedge", "9 Iron", "8 Iron", "7-Iron", "Lob Wedge", "5-Iron", "4-Iron"`).
+- **List** (padding 16×16, bottom 100px): per shot — renders a reusable, premium `ShotCard` layout displaying the shot's club name, core metrics formatted in metric units (`km/h`, `°`, `m`, `RPM`), chronological shot index (e.g. `SHOT #8`), and local timestamp (`HH:MM AM/PM`).
 
 ---
 
@@ -217,9 +215,9 @@ The project follows a clean-architecture multi-module structure:
 | `:androidApp` | Android entry point; initializes Koin DI and launches the shared UI. |
 | `:iosApp` | iOS entry point; minimal wrapper for the shared KMP framework. |
 | `:shared` | Compose Multiplatform UI, the `App()` composable, iOS `MainViewController` factory. |
-| `:presentation` | ViewModels, UI state holders, navigation logic (under development). |
+| `:presentation` | ViewModels, UI state holders, navigation logic. |
 | `:domain` | Business rules, data model classes (`GolfPlayer`, `GolfShot`, etc.), repository interfaces, and use cases. |
-| `:data` | Repository implementations, Ktor networking, local persistence (TODO: Room entities/DAOs). |
+| `:data` | Repository implementations, Ktor networking, local persistence (Room entities/DAOs, offline-first). |
 
 For full module architecture details and build/test commands, see `CLAUDE.md` **Module Architecture** and **Build & Run** sections.
 
@@ -258,6 +256,23 @@ The application follows an **offline-first pattern** utilizing the local Room da
     *   Upon receiving a successful API response, the repository deletes stale cache and writes new records to the Room database.
     *   Since the UI is observing Room, it immediately receives the database updates and renders the new data.
 3.  **Graceful Degradation**: If the network request fails (e.g., connection timed out or offline), the ViewModel catches the exception to present a descriptive error toast/banner, while the user continues to see the previously cached data from the Room database.
+
+---
+
+## Performance & Caching Tuning
+
+The application implements performance optimizations to ensure a smooth, high-fidelity experience:
+
+1.  **Coil Image Caching**:
+    *   **Memory Cache**: Configured to dynamically allocate up to 25% of available system RAM for image bitmaps, preventing excessive garbage collection (GC) cycles.
+    *   **Disk Cache**: Uses the platform-agnostic Okio `SYSTEM_TEMPORARY_DIRECTORY` with a `coil_cache` directory and a maximum storage limit of 100 MB.
+    *   **Logging**: Traces configuration events inside `App` initialization using Napier log tags.
+2.  **Lazy Detail Screen List**:
+    *   Migrated the Player Details view from a static scrollable `Column` to a `LazyColumn`.
+    *   This ensures composables are recycled efficiently as they enter and exit the viewport, paving the way for smooth scrolling even with heavy graphics (such as scatter charts) and large inline shot histories.
+3.  **In-Memory Filtering (Shots Screen)**:
+    *   To avoid redundant local database queries or remote network calls when filtering, the `PlayerShotDetailsViewModel` processes club filtering entirely in-memory using Kotlin `StateFlow` combiners.
+    *   **Stable Shot Numbering & Default Sort**: Shot records are pre-sorted chronologically (ascending) in the ViewModel to compute a stable, absolute sequential shot number (e.g. `SHOT #8`). After filtering, they are displayed sorted by newest first (descending timestamp). This guarantees that each shot's label remains consistent even under active filters.
 
 ---
 

@@ -11,6 +11,9 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.compose.viewmodel.koinViewModel
@@ -19,6 +22,7 @@ import com.mujapps.golfgarage.ui.components.PlayerDetailsHeader
 import com.mujapps.golfgarage.ui.components.PlayersListHeader
 import com.mujapps.golfgarage.ui.views.GolfPlayerDetailsView
 import com.mujapps.golfgarage.ui.views.GolfersListView
+import com.mujapps.golfgarage.ui.views.GolfPlayerShotsView
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 
@@ -28,6 +32,7 @@ fun GolfersNavRoute(
     onToggleDarkTheme: () -> Unit,
 ) {
     val mListingViewModel: PlayerListingViewModel = koinViewModel()
+    var topBarTitle by remember { mutableStateOf("Player Details") }
 
     val mBackStack = rememberNavBackStack(
         configuration = SavedStateConfiguration {
@@ -36,6 +41,7 @@ fun GolfersNavRoute(
                     polymorphic(baseClass = NavKey::class) {
                         subclass(NavRoutes.Listing::class, NavRoutes.Listing.serializer())
                         subclass(NavRoutes.Details::class, NavRoutes.Details.serializer())
+                        subclass(NavRoutes.Shots::class, NavRoutes.Shots.serializer())
                     }
                 }
         },
@@ -58,11 +64,15 @@ fun GolfersNavRoute(
                         onToggleDarkTheme = onToggleDarkTheme,
                     )
                 }
-                is NavRoutes.Details -> {
+                is NavRoutes.Details, is NavRoutes.Shots -> {
                     PlayerDetailsHeader(
+                        title = topBarTitle,
                         onBack = {
                             if (mBackStack.size > 1) {
                                 mBackStack.removeAt(mBackStack.lastIndex)
+                                if (mBackStack.lastOrNull() is NavRoutes.Listing) {
+                                    topBarTitle = "Player Details"
+                                }
                             }
                         },
                         isDarkTheme = isDarkTheme,
@@ -91,7 +101,19 @@ fun GolfersNavRoute(
                     }
 
                     is NavRoutes.Details -> NavEntry(key) {
-                        GolfPlayerDetailsView(key.mPlayerId, mBackStack)
+                        GolfPlayerDetailsView(
+                            mPlayerId = key.mPlayerId,
+                            backStack = mBackStack,
+                            onPlayerLoaded = { topBarTitle = it }
+                        )
+                    }
+
+                    is NavRoutes.Shots -> NavEntry(key) {
+                        GolfPlayerShotsView(
+                            mPlayerId = key.mPlayerId,
+                            backStack = mBackStack,
+                            onPlayerLoaded = { topBarTitle = it }
+                        )
                     }
 
                     else -> throw IllegalArgumentException("Invalid route: $key")
