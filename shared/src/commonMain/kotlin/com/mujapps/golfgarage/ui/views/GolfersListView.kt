@@ -3,6 +3,7 @@ package com.mujapps.golfgarage.ui.views
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -21,6 +22,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import com.mujapps.golfgarage.ui.components.PlayerRowItem
+import com.mujapps.golfgarage.ui.components.PlayersListHeader
 import com.mujapps.presentation.features.player_listing.PlayerListingViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import com.mujapps.golfgarage.navigation.NavRoutes
@@ -37,6 +39,7 @@ fun GolfersListView(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
         // Initial loading state
         if (mPagingItems.loadState.refresh is LoadState.Loading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -52,7 +55,11 @@ fun GolfersListView(
 
         // List
         if (mPagingItems.itemCount > 0) {
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(start = 16.dp, top = 14.dp, end = 16.dp, bottom = 28.dp),
+                verticalArrangement = Arrangement.spacedBy(11.dp),
+            ) {
                 items(
                     count = mPagingItems.itemCount,
                     key = mPagingItems.itemKey { it.mId },

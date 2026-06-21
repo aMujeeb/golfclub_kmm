@@ -47,7 +47,10 @@ fun App() {
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            GolfersNavRoute()
+            GolfersNavRoute(
+                isDarkTheme = { darkTheme },
+                onToggleDarkTheme = { darkTheme = !darkTheme },
+            )
         }
     }
 }
