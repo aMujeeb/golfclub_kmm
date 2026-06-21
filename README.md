@@ -230,12 +230,76 @@ Use the run configurations provided by the run widget in your IDE's toolbar. You
 - Android app: `./gradlew :androidApp:assembleDebug`
 - iOS app: open the [/iosApp](./iosApp) directory in Xcode and run it from there.
 
-### Running tests
+---
 
-Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
+## Kotlin Multiplatform (KMP) Architecture
 
-- Android tests: `./gradlew :shared:testAndroidHostTest`
-- iOS tests: `./gradlew :shared:iosSimulatorArm64Test`
+The project leverages Kotlin Multiplatform (KMP) to share code across Android and iOS platforms. By modularizing the project, we achieve clear separation of concerns and maximum code reuse:
+
+*   **Shared Business & Data Layer**: 
+    *   `:domain`: Exposes pure Kotlin business models, repositories (interfaces), and use cases.
+    *   `:data`: Handles Ktor networking, Room local persistence database, and repository implementations.
+    *   `:presentation`: ViewModels and UI state definitions.
+*   **Shared UI Layer (`:shared`)**: Houses Compose Multiplatform code (Composables, theming, visual components) used directly by both platforms.
+*   **Platform Wrappers**: 
+    *   `:androidApp`: Initializes Koin DI with `androidContext` and boots the shared UI (`App()`).
+    *   `:iosApp`: Minimally wraps the shared iOS framework (`MainViewController.kt`) via Swift/Xcode.
+
+---
+
+## Offline-First Functionality
+
+The application follows an **offline-first pattern** utilizing the local Room database as the single source of truth for UI content:
+
+1.  **Reactive Observation**: The UI (via ViewModels and Use Cases) reactively listens to Flow streams exposed by the Room database.
+2.  **Unidirectional Data Flow**: 
+    *   When the user opens a player's profile, the ViewModel issues a background sync trigger (`getUserDetails() -> syncPlayerShots()`).
+    *   The sync job executes on `Dispatchers.IO`, requesting fresh records from `RemoteDataSource` via Ktor.
+    *   Upon receiving a successful API response, the repository deletes stale cache and writes new records to the Room database.
+    *   Since the UI is observing Room, it immediately receives the database updates and renders the new data.
+3.  **Graceful Degradation**: If the network request fails (e.g., connection timed out or offline), the ViewModel catches the exception to present a descriptive error toast/banner, while the user continues to see the previously cached data from the Room database.
+
+---
+
+## Unit Testing & Coverage
+
+We maintain high-fidelity unit tests across our core architecture layers targeting **mobile platforms** (Android and iOS). The tests are written in pure Kotlin and reside in `commonTest` source sets, ensuring they validate business logic across both target platforms.
+
+### Test Coverage Areas
+
+1.  **`:domain` (Business Logic)**
+    *   Unit tests for Use Cases (`GetAllPlayersUseCaseTest`, `GetPlayerDetailsShotsUseCaseTest`).
+    *   Validates correct delegation of data, error handling, and reactive flow emissions using **Turbine**.
+    *   Uses a `MockGolfRepository` to stub repository responses.
+2.  **`:presentation` (UI State & ViewModels)**
+    *   Unit tests for ViewModels (`PlayerListingViewModelTest`, `PlayerDetailsViewModelTest`).
+    *   Uses `kotlinx-coroutines-test` with `UnconfinedTestDispatcher` to intercept and test `viewModelScope` calls.
+    *   Asserts flow progression of UI state (e.g., initial state -> loading state -> database data emission).
+    *   Asserts API sync failures write correct error details to `mDetailsUiState`.
+3.  **`:data` (Data Mappers & Network Clients)**
+    *   **Mappers** (`MappersTest`): Tests mapping conversions between API DTOs, Local Database Entities, and Domain Models (`DtoMappers`, `EntityMappers`).
+    *   **RemoteDataSource** (`RemoteDataSourceTest`): Tests HTTP network requests utilizing Ktor's `MockEngine` (asserting HTTP 200 parses DTOs correctly and HTTP error status codes produce a failure `Result`).
+
+### Running Tests
+
+Run the following Gradle commands from your terminal:
+
+*   **Run all tests in all modules**:
+    ```bash
+    ./gradlew testAndroidHostTest
+    ```
+*   **Run Domain tests**:
+    ```bash
+    ./gradlew :domain:testAndroidHostTest
+    ```
+*   **Run Presentation tests**:
+    ```bash
+    ./gradlew :presentation:testAndroidHostTest
+    ```
+*   **Run Data tests**:
+    ```bash
+    ./gradlew :data:testAndroidHostTest
+    ```
 
 ---
 
