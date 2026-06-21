@@ -13,6 +13,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import coil3.ImageLoader
+import coil3.compose.setSingletonImageLoaderFactory
+import coil3.network.ktor3.KtorNetworkFetcherFactory
+import coil3.request.crossfade
 import com.mujapps.golfgarage.navigation.GolfersNavRoute
 import com.mujapps.golfgarage.ui.theme.GolfGarageTheme
 import io.github.aakira.napier.DebugAntilog
@@ -28,6 +32,14 @@ fun App() {
     var darkTheme by remember { mutableStateOf(false) }
 
     GolfGarageTheme(darkTheme = darkTheme) {
+        setSingletonImageLoaderFactory { context ->
+            ImageLoader.Builder(context).components {
+                add(KtorNetworkFetcherFactory()) //Ensure image download across all platforms(accessing external resources)
+            }
+                .crossfade(true)
+                .build()
+        }
+        
         Column(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.primaryContainer)
@@ -35,7 +47,10 @@ fun App() {
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            GolfersNavRoute()
+            GolfersNavRoute(
+                isDarkTheme = { darkTheme },
+                onToggleDarkTheme = { darkTheme = !darkTheme },
+            )
         }
     }
 }

@@ -9,12 +9,17 @@ import io.github.aakira.napier.Napier
 
 class RemoteDataSource(private val httpClient: HttpClient, private val baseUrl: String) {
 
-    suspend fun getGolfPlayers(page: Int, limit: Int): Result<List<GolfPlayerDto>> {
+    suspend fun getGolfPlayers(page: Int, limit: Int, search: String? = null): Result<List<GolfPlayerDto>> {
         return try {
-            val response = httpClient.get("$baseUrl/players?page=$page&limit=$limit")
+            val url = if (search.isNullOrBlank()) {
+                "$baseUrl/players?page=$page&limit=$limit"
+            } else {
+                "$baseUrl/players?page=$page&limit=$limit&search=$search"
+            }
+            val response = httpClient.get(url)
             Result.success(response.body())
         } catch (ex: Exception) {
-            Napier.e("Failed to fetch golf players for page=$page, limit=$limit", ex)
+            Napier.e("Failed to fetch golf players for page=$page, limit=$limit, search=$search", ex)
             Result.failure(ex)
         }
     }

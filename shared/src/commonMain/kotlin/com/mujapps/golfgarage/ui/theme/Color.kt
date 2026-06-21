@@ -16,7 +16,7 @@ val LightSuccess = Color(0xFF15803D)
 val LightWarning = Color(0xFFB45309)
 val LightError = Color(0xFFDC2626)
 val LightBorder = Color(0xFFE6EAEA)
-val LightShadow = Color(0x0F280620) // rgba(15,40,38,.06)
+val LightShadow = Color(0x0F0F2826) // rgba(15,40,38,.06)
 
 // Dark Theme Colors
 val DarkPageBg = Color(0xFF121212)
@@ -32,4 +32,4 @@ val DarkSuccess = Color(0xFF7EE8C1)
 val DarkWarning = Color(0xFFFFD369)
 val DarkError = Color(0xFFFF8A65)
 val DarkBorder = Color(0xFF2C2C2C)
-val DarkShadow = Color(0xFF000000) // rgba(0,0,0,.5) with 80% opacity
+val DarkShadow = Color(0x80000000) // rgba(0,0,0,.5)

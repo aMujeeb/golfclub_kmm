@@ -319,17 +319,6 @@ The `:data` module handles networking via Ktor and converts API responses (DTOs)
 - **Mappers** (`DtoMappers.kt`): Extension functions (`GolfPlayerDto.toDomain()`, `GolfShotDto.toDomain()`, etc.) convert DTOs to domain models.
 - **RemoteDataSource** (`RemoteDataSource.kt`): Fetches data from the API and wraps responses in `Result<T>`, logging errors via Napier.
 
-For details, see the **Data Layer & Mappers** section in `CLAUDE.md`.
-
----
-
-## Recent Updates (Current Progress)
-- **Dependency Management**: Fixed Koin module resolution by correctly exposing `api(libs.koin.core)` in the `:data` module.
-- **Coroutines & Flow**: 
-  - Updated `GolfersRepository` methods to correctly handle Ktor `Result` mapping within `suspend` functions and Flow builders.
-  - Refactored `getPlayerWithShots` to be a `suspend` function throughout the interface and implementation to match network constraints.
-- **Logging**: Added comprehensive cross-platform Napier logging to the Domain and Data layers (`GetAllPlayersUseCase`, `GetPlayerDetailsShotsUseCase`, `GolfersRepository`) for better visibility into execution flows and network fetches.
-
 ---
 
 Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…

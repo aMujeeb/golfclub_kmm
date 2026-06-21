@@ -1,6 +1,9 @@
 package com.mujapps.golfgarage.navigation
 
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
@@ -8,13 +11,24 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.koin.compose.viewmodel.koinViewModel
+import com.mujapps.presentation.features.player_listing.PlayerListingViewModel
+import com.mujapps.golfgarage.ui.components.PlayerDetailsHeader
+import com.mujapps.golfgarage.ui.components.PlayersListHeader
 import com.mujapps.golfgarage.ui.views.GolfPlayerDetailsView
 import com.mujapps.golfgarage.ui.views.GolfersListView
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 
 @Composable
-fun GolfersNavRoute() {
+fun GolfersNavRoute(
+    isDarkTheme: () -> Boolean,
+    onToggleDarkTheme: () -> Unit,
+) {
+    val mListingViewModel: PlayerListingViewModel = koinViewModel()
+
     val mBackStack = rememberNavBackStack(
         configuration = SavedStateConfiguration {
             serializersModule =
@@ -28,25 +42,61 @@ fun GolfersNavRoute() {
         elements = arrayOf(NavRoutes.Listing)
     )
 
-    NavDisplay(
-        backStack = mBackStack,
-        entryDecorators = listOf(
-            rememberSaveableStateHolderNavEntryDecorator(),
-            rememberViewModelStoreNavEntryDecorator()
-        ),
-        entryProvider = { key ->
-            when (key) {
-
-                is NavRoutes.Listing -> NavEntry(key) {
-                    GolfersListView(mBackStack)
+    Scaffold(
+        topBar = {
+            val currentRoute = mBackStack.lastOrNull()
+            when (currentRoute) {
+                is NavRoutes.Listing -> {
+                    val searchQuery by mListingViewModel.searchQuery.collectAsStateWithLifecycle()
+                    val selectedClubs by mListingViewModel.selectedClubs.collectAsStateWithLifecycle()
+                    PlayersListHeader(
+                        searchQuery = searchQuery,
+                        onSearchQueryChanged = { mListingViewModel.onSearchQueryChanged(it) },
+                        selectedClubs = selectedClubs,
+                        onClubFilterToggled = { mListingViewModel.onClubFilterToggled(it) },
+                        isDarkTheme = isDarkTheme,
+                        onToggleDarkTheme = onToggleDarkTheme,
+                    )
                 }
-
-                is NavRoutes.Details -> NavEntry(key) {
-                    GolfPlayerDetailsView(key.mPlayerId, mBackStack)
+                is NavRoutes.Details -> {
+                    PlayerDetailsHeader(
+                        onBack = {
+                            if (mBackStack.size > 1) {
+                                mBackStack.removeAt(mBackStack.lastIndex)
+                            }
+                        },
+                        isDarkTheme = isDarkTheme,
+                        onToggleDarkTheme = onToggleDarkTheme,
+                    )
                 }
-
-                else -> throw IllegalArgumentException("Invalid route: $key")
+                else -> {}
             }
-        },
-    )
+        }
+    ) { innerPadding ->
+        NavDisplay(
+            modifier = Modifier.padding(innerPadding),
+            backStack = mBackStack,
+            entryDecorators = listOf(
+                rememberSaveableStateHolderNavEntryDecorator(),
+                rememberViewModelStoreNavEntryDecorator()
+            ),
+            entryProvider = { key ->
+                when (key) {
+
+                    is NavRoutes.Listing -> NavEntry(key) {
+                        GolfersListView(
+                            backStack = mBackStack,
+                            mViewModel = mListingViewModel,
+                        )
+                    }
+
+                    is NavRoutes.Details -> NavEntry(key) {
+                        GolfPlayerDetailsView(key.mPlayerId, mBackStack)
+                    }
+
+                    else -> throw IllegalArgumentException("Invalid route: $key")
+                }
+            },
+        )
+    }
 }

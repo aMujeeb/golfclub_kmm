@@ -14,6 +14,9 @@ interface PlayerDao {
     @Query("SELECT * FROM player")
     suspend fun getAllPlayersOffline(): List<PlayerEntity>
 
+    @Query("SELECT * FROM player WHERE name LIKE :query")
+    suspend fun searchPlayersOffline(query: String): List<PlayerEntity>
+
     @Transaction
     @Query("SELECT * FROM player WHERE id = :id")
     fun getPlayerWithShots(id: String): Flow<PlayerWithShots?>
