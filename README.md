@@ -12,6 +12,13 @@ A mobile app for browsing golf players and inspecting each player's performance.
 
 Target implementation: **Kotlin Multiplatform Mobile (KMM)** with **Compose Multiplatform** for shared UI.
 
+## Screenshots
+
+| | Players List | Player Details | Players List (Dark) |
+|---|---|---|---|
+| **Android** | <img src="images/Screenshot_1.png" width="220"/> | <img src="images/Screenshot_2.png" width="220"/> | <img src="images/Screenshot_3.png" width="220"/> |
+| **iOS** | <img src="images/Simulator%20Screenshot%20-%20iPhone_1.png" width="220"/> | <img src="images/Simulator%20Screenshot_2.png" width="220"/> | <img src="images/Simulator%20Screenshot_3.png" width="220"/> |
+
 ## About the Design Files
 The file in this bundle (`Golf Performance Tracker.dc.html`) is a **design reference created in HTML** — a working prototype showing the intended look, layout, and navigation, **not production code to copy directly**. The task is to **recreate this design in the KMM / Compose Multiplatform codebase** using its established patterns (Composables, `ViewModel`/state holders, theming via `MaterialTheme`, navigation). Treat the HTML/CSS values below as the source of truth for spacing, color, and type.
 
@@ -273,6 +280,10 @@ The application implements performance optimizations to ensure a smooth, high-fi
 3.  **In-Memory Filtering (Shots Screen)**:
     *   To avoid redundant local database queries or remote network calls when filtering, the `PlayerShotDetailsViewModel` processes club filtering entirely in-memory using Kotlin `StateFlow` combiners.
     *   **Stable Shot Numbering & Default Sort**: Shot records are pre-sorted chronologically (ascending) in the ViewModel to compute a stable, absolute sequential shot number (e.g. `SHOT #8`). After filtering, they are displayed sorted by newest first (descending timestamp). This guarantees that each shot's label remains consistent even under active filters.
+4.  **Collapsing Profile Header Motion Animation (Details Screen)**:
+    *   Implements a classic MotionLayout-style collapsing toolbar natively in Compose Multiplatform.
+    *   Uses a `LazyListState` listener on the scrolling detail screen to dynamically calculate the card offset collapse fraction (`0.0f` to `1.0f`).
+    *   Fades out the main profile card and dynamically slides/fades in a compact 32.dp profile avatar circle and player name in the top app bar as the user scrolls, maximizing space for analytics and shot history.
 
 ---
 

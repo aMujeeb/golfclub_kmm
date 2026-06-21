@@ -30,6 +30,18 @@ import compose.icons.evaicons.outline.ArrowBack
 import compose.icons.evaicons.outline.Checkmark
 import compose.icons.evaicons.outline.Close
 import compose.icons.evaicons.outline.Search
+import compose.icons.evaicons.outline.Person
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import coil3.compose.AsyncImage
 
 @Composable
 fun PlayersListHeader(
@@ -159,6 +171,8 @@ fun PlayerDetailsHeader(
     isDarkTheme: () -> Boolean,
     onToggleDarkTheme: () -> Unit,
     modifier: Modifier = Modifier,
+    collapseProgress: Float = 0f,
+    profilePicUrl: String? = null
 ) {
     Column(modifier = modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background)) {
         Row(
@@ -179,11 +193,32 @@ fun PlayerDetailsHeader(
                         tint = MaterialTheme.colorScheme.onBackground
                     )
                 }
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.displayLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
-                )
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Show collapsed compact profile details
+                    if (collapseProgress > 0.5f && profilePicUrl != null) {
+                        AsyncImage(
+                            model = profilePicUrl,
+                            contentDescription = title,
+                            contentScale = ContentScale.Crop,
+                            placeholder = rememberVectorPainter(EvaIcons.Outline.Person),
+                            error = rememberVectorPainter(EvaIcons.Outline.Person),
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+
+                    Text(
+                        text = if (collapseProgress > 0.5f) title else "Player Details",
+                        style = MaterialTheme.typography.displayLarge,
+                        color = MaterialTheme.colorScheme.onBackground,
+                    )
+                }
             }
             ThemeModeToggleButton(isDarkTheme = isDarkTheme, onToggle = onToggleDarkTheme)
         }
