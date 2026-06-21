@@ -71,6 +71,12 @@ kotlin {
             //Room
             implementation(libs.androidx.room.runtime)
             implementation(libs.androidx.sqlite.bundled)
+
+            //Coil
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor)
+
+            implementation(libs.composeIcons.evaIcons)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
