@@ -12,6 +12,13 @@ A mobile app for browsing golf players and inspecting each player's performance.
 
 Target implementation: **Kotlin Multiplatform Mobile (KMM)** with **Compose Multiplatform** for shared UI.
 
+## Screenshots
+
+| | Players List | Player Details | Players List (Dark) |
+|---|---|---|---|
+| **Android** | <img src="images/Screenshot_1.png" width="220"/> | <img src="images/Screenshot_2.png" width="220"/> | <img src="images/Screenshot_3.png" width="220"/> |
+| **iOS** | <img src="images/Simulator%20Screenshot%20-%20iPhone_1.png" width="220"/> | <img src="images/Simulator%20Screenshot_2.png" width="220"/> | <img src="images/Simulator%20Screenshot_3.png" width="220"/> |
+
 ## About the Design Files
 The file in this bundle (`Golf Performance Tracker.dc.html`) is a **design reference created in HTML** — a working prototype showing the intended look, layout, and navigation, **not production code to copy directly**. The task is to **recreate this design in the KMM / Compose Multiplatform codebase** using its established patterns (Composables, `ViewModel`/state holders, theming via `MaterialTheme`, navigation). Treat the HTML/CSS values below as the source of truth for spacing, color, and type.
 
